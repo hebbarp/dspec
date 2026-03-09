@@ -1,341 +1,214 @@
 #set page(
   paper: "a4",
-  margin: (x: 1.4cm, y: 1.4cm),
-  fill: rgb("#fafafa"),
+  margin: (x: 2cm, y: 1.8cm),
+  fill: white,
 )
 
-#set text(font: "Segoe UI", size: 9pt, fill: rgb("#222"))
-#set par(leading: 0.5em)
+#set text(font: "Segoe UI", size: 10pt, fill: rgb("#333"))
+#set par(leading: 0.6em)
 
-// ── Styles ──
 #let accent = rgb("#e94560")
 #let green = rgb("#2d8a6e")
 #let blue = rgb("#2563eb")
-#let orange = rgb("#c05621")
-#let dimtext = rgb("#666")
-#let codebg = rgb("#f0f0f0")
-
-#let section-title(body) = {
-  v(0.4em)
-  block(
-    width: 100%,
-    inset: (x: 8pt, y: 5pt),
-    fill: accent,
-    radius: 3pt,
-    text(fill: white, weight: "bold", size: 10pt, body)
-  )
-  v(0.2em)
-}
-
-#let subsection(body) = {
-  v(0.2em)
-  text(fill: accent, weight: "bold", size: 9.5pt, body)
-  v(0.1em)
-}
+#let dimtext = rgb("#888")
+#let mono = "Consolas"
 
 #let cmd(body) = {
   box(
-    inset: (x: 4pt, y: 2pt),
-    fill: codebg,
-    radius: 2pt,
-    text(font: "Consolas", size: 8pt, fill: rgb("#333"), body)
+    inset: (x: 5pt, y: 3pt),
+    fill: rgb("#f5f5f5"),
+    radius: 3pt,
+    text(font: mono, size: 9pt, fill: rgb("#333"), body)
   )
 }
 
-#let codeblock(body) = {
-  block(
-    width: 100%,
-    inset: 8pt,
-    fill: rgb("#1a1a2e"),
-    radius: 4pt,
-    text(font: "Consolas", size: 7.5pt, fill: rgb("#e0e0e0"), body)
+#let step(num, title, body) = {
+  grid(
+    columns: (28pt, 1fr),
+    gutter: 8pt,
+    align(center, text(size: 18pt, weight: "bold", fill: accent, str(num))),
+    [
+      #text(weight: "bold", size: 11pt, title) \
+      #text(size: 9.5pt, fill: rgb("#555"), body)
+    ]
   )
+  v(0.6em)
 }
 
-#let note(body) = {
-  block(
-    width: 100%,
-    inset: (x: 8pt, y: 5pt),
-    fill: rgb("#fff8e1"),
-    stroke: (left: 3pt + orange),
-    radius: (right: 3pt),
-    text(size: 8pt, fill: rgb("#5d4037"), body)
-  )
-}
-
-// ════════════════════════════════════════════════════
-// HEADER
-// ════════════════════════════════════════════════════
+// ── Header ──
 
 #align(center)[
-  #text(size: 22pt, weight: "bold", fill: accent)[dspec] #text(size: 22pt, weight: "light", fill: dimtext)[cheatsheet]
-  #v(0.1em)
-  #text(size: 9pt, fill: dimtext)[Distributed Object Specification System --- write specs, not code]
-  #v(0.1em)
-  #text(size: 7.5pt, fill: dimtext)[Wirth's Principle: Algorithm + Data Structure = Program #h(1em) | #h(1em) v0.1.0]
+  #text(size: 28pt, weight: "bold", fill: accent)[dspec]
+  #v(0.2em)
+  #text(size: 12pt, fill: dimtext)[Write the thinking. Let someone else write the code.]
 ]
 
-#v(0.3em)
-#line(length: 100%, stroke: 0.5pt + rgb("#ddd"))
-#v(0.2em)
+#v(1em)
+#line(length: 100%, stroke: 0.5pt + rgb("#eee"))
+#v(0.8em)
 
-// ════════════════════════════════════════════════════
-// TWO COLUMN LAYOUT
-// ════════════════════════════════════════════════════
+// ── The Idea ──
 
-#columns(2, gutter: 14pt)[
+#text(size: 11pt, fill: rgb("#555"))[
+  Before you build anything, describe it. What are the *things* (nouns)?
+  What do they *do* (verbs)? What *rules* apply?
+  That description is the spec. The spec is dspec.
+]
 
-// ── CLI COMMANDS ──
-#section-title[CLI Commands]
+#v(1.2em)
 
-#table(
-  columns: (auto, 1fr),
-  stroke: none,
-  row-gutter: 2pt,
-  inset: (x: 4pt, y: 3pt),
-  [#cmd[dspec init Name -p pkg]], [Create spec from template],
-  [#cmd[dspec validate file.spec.yml]], [Validate a spec],
-  [#cmd[dspec validate \*.spec.yml -w]], [Validate with warnings],
-  [#cmd[dspec browse file.spec.yml]], [Four-pane Smalltalk view],
-  [#cmd[dspec list ./specs]], [List all specs in directory],
-  [#cmd[dspec export file.spec.yml]], [Export as structured prompt],
-  [#cmd[dspec export file.spec.yml -o f.md]], [Export to file],
-  [#cmd[dspec crc]], [Open CRC card designer],
-  [#cmd[dspec crc specs/\*.yml]], [CRC with preloaded specs],
-  [#cmd[dspec crc --sync ws:\/\/ip:8090]], [CRC with live collaboration],
-  [#cmd[dspec sync --port 8090]], [Start sync server on network],
-)
+// ── Three Ways to Start ──
 
-// ── SPEC FORMAT ──
-#section-title[Spec Format (.spec.yml)]
+#text(size: 14pt, weight: "bold")[How to start]
+#v(0.5em)
 
-#codeblock[
+#step(1, "Tell a story", [
+  Just describe what you're building. dspec pulls out the structure. \
+  #v(0.3em)
+  #cmd[dspec describe] \
+  #v(0.2em)
+  #text(size: 9pt, fill: dimtext)[
+    _"We need to match bank transactions against invoices by reference code.
+    If the amount is close enough, mark it matched. Never compare across currencies."_
+  ]
+  #v(0.2em)
+  Nouns become data. Verbs become operations. Rules become constraints.
+])
+
+#step(2, "Review and refine", [
+  The story generates a scaffold spec with TODOs. Open it, fill in the blanks. \
+  #v(0.3em)
+  #cmd[dspec validate my_spec.spec.yml] #h(8pt) #text(size: 9pt, fill: green)[checks everything is complete]
+])
+
+#step(3, "Hand it off", [
+  Export the spec as a prompt for any implementer --- human, AI, or tool. \
+  #v(0.3em)
+  #cmd[dspec export my_spec.spec.yml] #h(8pt) #text(size: 9pt, fill: green)[ready to implement]
+])
+
+#v(0.8em)
+#line(length: 100%, stroke: 0.5pt + rgb("#eee"))
+#v(0.8em)
+
+// ── What a Spec Looks Like ──
+
+#text(size: 14pt, weight: "bold")[What a spec looks like]
+#v(0.5em)
+
+#block(
+  width: 100%,
+  inset: 14pt,
+  fill: rgb("#1a1a2e"),
+  radius: 6pt,
+  text(font: mono, size: 8.5pt, fill: rgb("#e0e0e0"))[
 ```
-object: InvoiceReconciler     # PascalCase
-package: billing               # lowercase
+object: InvoiceReconciler          # the thing (noun)
+package: billing                    # where it lives
 
-purpose: >
-  What it does and why. Min 20 chars.
-  Forces you to think before building.
+purpose: >                          # what and why
+  Matches bank transactions against invoices
+  using reference codes and fuzzy amounts.
 
-data:
-  Invoice:                     # PascalCase
-    description: Optional text
+data:                               # the nouns
+  Invoice:
     fields:
-      id: UUID                 # simple type
+      id: UUID
       amount: Decimal
-      items: List<LineItem>    # generic
-      status:                  # rich type
-        type: String
-        enum: [pending, matched]
-        default: pending
+      status: String               # pending | matched | disputed
 
-protocols:
-  queries: [find_unmatched]
-  commands: [match, dispute]
-  events: [on_complete]
-
-messages:
+messages:                           # the verbs
   match:
     input:
       invoices: List<Invoice>
       tolerance: Float
     output: List<MatchResult>
-    algorithm:
-      - Index transactions by prefix
+    algorithm:                      # the how
+      - Index transactions by reference prefix
       - Compare amounts within tolerance
-      - Sort by confidence descending
-    constraints:
-      - O(n log n) or better
-    errors:
-      currency_mismatch: Never compare
-        across currencies
+      - Sort by confidence
 
-constraints:                   # global
-  - All operations idempotent
-  - Currency mismatches must fail
-
-environment:
-  language: python
-  runtime: python-3.12
-  needs: [postgresql, redis]
-  os: any                      # linux|macos|windows|any
-
-dependencies:
-  Notifier:
-    description: Sends alerts
-    messages: [send_alert, send_summary]
+constraints:                        # the rules
+  - Never compare across currencies
+  - Must be idempotent
 ```
+  ]
+)
+
+#v(0.8em)
+#line(length: 100%, stroke: 0.5pt + rgb("#eee"))
+#v(0.8em)
+
+// ── All Commands ──
+
+#text(size: 14pt, weight: "bold")[Commands]
+#v(0.5em)
+
+#table(
+  columns: (1fr, 1.8fr),
+  stroke: none,
+  row-gutter: 4pt,
+  inset: (x: 0pt, y: 4pt),
+  [#cmd[dspec describe]], [Tell your story, get a spec],
+  [#cmd[dspec validate file.spec.yml]], [Check the spec is complete],
+  [#cmd[dspec browse file.spec.yml]], [Read the spec in a clean view],
+  [#cmd[dspec export file.spec.yml]], [Turn spec into an implementation prompt],
+  [#cmd[dspec list]], [See all specs in the project],
+  [#cmd[dspec crc]], [Open the CRC card board (visual)],
+  [#cmd[dspec crc --sync ws:\/\/ip:8090]], [Collaborative board with your team],
+  [#cmd[dspec sync]], [Start the collaboration server],
+  [#cmd[dspec init Name -p package]], [Blank template (if you prefer structure)],
+)
+
+#v(0.8em)
+#line(length: 100%, stroke: 0.5pt + rgb("#eee"))
+#v(0.8em)
+
+// ── Team Session ──
+
+#text(size: 14pt, weight: "bold")[Team design session]
+#v(0.5em)
+
+#text(size: 10pt, fill: rgb("#555"))[
+  Open the CRC card board together. Each card is one object in the system.
+  Left side: what it does. Right side: who it talks to.
+  When you're done discussing, export as specs.
 ]
 
-// ── BUILT-IN TYPES ──
-#section-title[Type System]
+#v(0.4em)
 
-#subsection[Primitives]
-#cmd[String] #cmd[Int] #cmd[Float] #cmd[Decimal] #cmd[Boolean] #cmd[Date] #cmd[DateTime] #cmd[Time] #cmd[UUID] #cmd[Void] #cmd[Bytes]
-
-#v(0.3em)
-#subsection[Generics]
-#table(
-  columns: (auto, 1fr),
-  stroke: none,
-  inset: (x: 4pt, y: 2pt),
-  [#cmd[List\<T\>]], [Ordered collection],
-  [#cmd[Set\<T\>]], [Unique collection],
-  [#cmd[Map\<K, V\>]], [Key-value mapping],
-  [#cmd[Optional\<T\>]], [Nullable value],
-)
-
-#v(0.3em)
-#subsection[User-defined]
-Any PascalCase name defined in #cmd[data:] becomes a type.
-Reference across objects --- validator warns but allows it.
-
-// ── VALIDATOR RULES ──
-#section-title[What the Validator Checks]
-
-#table(
-  columns: (auto, 1fr),
-  stroke: none,
-  row-gutter: 1pt,
-  inset: (x: 4pt, y: 3pt),
-  text(fill: accent, weight: "bold")[ERROR], [Blocks the spec],
-  text(fill: orange, weight: "bold")[WARN], [Allowed but flagged],
-)
-
-#v(0.2em)
-*Errors (must fix):*
-- Object name not PascalCase
-- Purpose shorter than 20 characters
-- Missing required sections: #cmd[object] #cmd[purpose] #cmd[data] #cmd[messages]
-- Data structure without #cmd[fields]
-- Message missing #cmd[input], #cmd[output], or #cmd[algorithm]
-- Empty algorithm (zero steps)
-- #cmd[Map] without exactly 2 type params
-- Generic type without type params
-- Protocol referencing unknown message
-- Dependency without #cmd[messages] list
-
-*Warnings (should review):*
-- No #cmd[package] defined
-- No #cmd[protocols] defined
-- No #cmd[constraints] defined
-- No #cmd[environment] defined
-- Type referenced but not in #cmd[data]
-- Message not in any protocol
-- Unknown top-level section
-
-// ── CRC CARD DESIGNER ──
-#section-title[CRC Card Designer]
-
-#subsection[Card Layout (Kent Beck / Ward Cunningham)]
 #block(
   width: 100%,
-  inset: 6pt,
-  fill: codebg,
-  radius: 4pt,
-  text(font: "Consolas", size: 7pt)[
+  inset: 10pt,
+  fill: rgb("#f8f8f8"),
+  radius: 6pt,
+  stroke: 1pt + rgb("#eee"),
+  text(font: mono, size: 8pt)[
 ```
  ┌──────────────────────────────────────┐
- │ PACKAGE        ObjectName            │
+ │  billing   InvoiceReconciler         │
  ├──────────────────────────────────────┤
- │ Purpose (italic, why it exists)      │
- ├──────────────────┬───────────────────┤
- │ Responsibilities │ Collaborators     │
- │  › match()→Res   │  → Notifier      │
- │  › find()→List   │    send_alert    │
- │  › dispute()     │  → AuditLog      │
- ├──────────────────┴───────────────────┤
- │ [Invoice] [MatchResult] [Payment]    │
+ │ What it does       │ Who it talks to │
+ │  › match()         │  → Notifier     │
+ │  › find_unmatched()│  → AuditLog     │
+ │  › flag_disputed() │                 │
  ├──────────────────────────────────────┤
- │ ! Constraint 1                       │
- │ ! Constraint 2                       │
+ │ Invoice  MatchResult  BankTransaction│
  ├──────────────────────────────────────┤
- │ python  postgresql  redis            │
+ │ ! Never compare across currencies    │
  └──────────────────────────────────────┘
 ```
   ]
 )
 
-#subsection[Edit Mode Input Formats]
+#v(1.2em)
 
-*Data Structures* (one per line):
-#codeblock[Invoice: id UUID, amount Decimal, status String]
+// ── Footer ──
 
-*Messages* (one per line):
-#codeblock[match(invoices List\<Invoice\>) -> List\<Result\> | Index by prefix; Compare amounts; Sort]
-
-*Collaborators* (one per line):
-#codeblock[Notifier: send_alert, send_summary]
-
-#subsection[Keyboard Shortcuts]
-#table(
-  columns: (auto, 1fr),
-  stroke: none,
-  inset: (x: 4pt, y: 2pt),
-  [#cmd[Ctrl+Enter]], [Save card],
-  [#cmd[Escape]], [Cancel edit / close modal],
-  [Click collaborator], [Jump to that card],
-  [Show Links], [Draw dependency arrows],
-)
-
-// ── COLLABORATION ──
-#section-title[Network Collaboration]
-
-#subsection[Setup (any machine on the network)]
-#codeblock[
-\# Machine A: start sync server
-dspec sync --port 8090
-
-\# Machine A: open board
-dspec crc --sync ws:\/\/192.168.1.10:8090
-
-\# Machine B (any OS): join
-dspec crc --sync ws:\/\/192.168.1.10:8090
-
-\# Machine C: also joins
-dspec crc --sync ws:\/\/192.168.1.10:8090
-]
-
-#note[Install #cmd[pip install websockets] on the sync server machine. CRC clients need no extra dependencies --- sync runs over the browser's built-in WebSocket.]
-
-// ── WORKFLOW ──
-#section-title[Daily Workflow]
-
-#block(inset: (x: 4pt))[
-  #set text(size: 8.5pt)
-  #text(fill: green, weight: "bold")[1.] #text(weight: "bold")[Think] --- create spec with #cmd[dspec init] or CRC board \
-  #text(fill: green, weight: "bold")[2.] #text(weight: "bold")[Discuss] --- team reviews CRC cards together \
-  #text(fill: green, weight: "bold")[3.] #text(weight: "bold")[Validate] --- run #cmd[dspec validate -w] \
-  #text(fill: green, weight: "bold")[4.] #text(weight: "bold")[Export] --- #cmd[dspec export] produces implementation prompt \
-  #text(fill: green, weight: "bold")[5.] #text(weight: "bold")[Implement] --- hand to any implementer (human, LLM, tool) \
-  #text(fill: green, weight: "bold")[6.] #text(weight: "bold")[Verify] --- check implementation against spec constraints
-]
-
-#v(0.4em)
-#note[dspec is *not* coupled to any LLM. The spec is the artifact. Implementation is late-bound --- like dynamic dispatch in Smalltalk.]
-
-// ── SMALLTALK BROWSER MAPPING ──
-#section-title[Smalltalk Browser Mapping]
-
-#table(
-  columns: (1fr, 1fr),
-  stroke: 0.5pt + rgb("#ddd"),
-  inset: (x: 6pt, y: 4pt),
-  fill: (x, y) => if y == 0 { rgb("#f0f0f0") } else { none },
-  [*Squeak Pane*], [*dspec Equivalent*],
-  [Package], [#cmd[package:] domain],
-  [Class], [#cmd[object:] spec],
-  [Protocol], [#cmd[protocols:] grouping],
-  [Method], [#cmd[messages:] handler],
-  [Code pane], [algorithm + constraints],
-)
-
-#v(0.5em)
 #align(center)[
-  #text(size: 7pt, fill: dimtext)[
-    dspec v0.1.0 #h(1em) | #h(1em) github.com/hebbarp/dspec #h(1em) | #h(1em) MIT License
+  #text(size: 9pt, fill: dimtext)[
+    The spec is the thinking. Everything else is labor. \
+    #v(0.3em)
+    #text(size: 8pt)[github.com/hebbarp/dspec #h(2em) MIT License]
   ]
-]
-
 ]
