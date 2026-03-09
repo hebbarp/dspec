@@ -343,12 +343,42 @@ def main():
     p_sync.add_argument("--port", type=int, default=8090, help="Port (default: 8090)")
     p_sync.set_defaults(func=cmd_sync)
 
+    # describe
+    p_desc = subparsers.add_parser("describe", aliases=["d"], help="Describe what you're building, get a spec")
+    p_desc.add_argument("-t", "--text", help="Freeform description text (skip interactive mode)")
+    p_desc.add_argument("-f", "--file", help="Read description from a text file")
+    p_desc.add_argument("-o", "--output", help="Save generated spec to file")
+    p_desc.set_defaults(func=cmd_describe)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
         sys.exit(1)
 
     args.func(args)
+
+
+def cmd_describe(args):
+    """Generate a spec from a natural language description."""
+    from .describe import describe_interactive, describe_from_text
+
+    if args.file:
+        with open(args.file) as f:
+            text = f.read()
+        spec_yaml = describe_from_text(text)
+    elif args.text:
+        spec_yaml = describe_from_text(args.text)
+    else:
+        spec_yaml = describe_interactive()
+
+    if args.output:
+        with open(args.output, "w") as f:
+            f.write(spec_yaml)
+        print(f"\n  Saved to {args.output}")
+        print(f"  Next: dspec validate {args.output}")
+    else:
+        if args.text or args.file:
+            print(spec_yaml)
 
 
 def cmd_crc(args):
