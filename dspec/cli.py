@@ -334,7 +334,14 @@ def main():
     p_crc = subparsers.add_parser("crc", help="Open CRC card designer in browser")
     p_crc.add_argument("files", nargs="*", help="Spec files to preload")
     p_crc.add_argument("--port", type=int, default=8089, help="Port (default: 8089)")
+    p_crc.add_argument("--sync", help="WebSocket sync URL (e.g., ws://192.168.1.10:8090)")
     p_crc.set_defaults(func=cmd_crc)
+
+    # sync
+    p_sync = subparsers.add_parser("sync", help="Start sync server for collaborative editing")
+    p_sync.add_argument("--host", default="0.0.0.0", help="Bind address (default: 0.0.0.0)")
+    p_sync.add_argument("--port", type=int, default=8090, help="Port (default: 8090)")
+    p_sync.set_defaults(func=cmd_sync)
 
     args = parser.parse_args()
     if not args.command:
@@ -387,10 +394,15 @@ def cmd_crc(args):
     port = args.port
     server = http.server.HTTPServer(('127.0.0.1', port), CRCHandler)
 
+    sync_url = getattr(args, 'sync', None) or ''
     url = f"http://127.0.0.1:{port}/crc.html"
+    if sync_url:
+        url += f"?sync={sync_url}"
     print(f"CRC Card Designer running at {url}")
     if preload_cards:
         print(f"Preloaded {len(preload_cards)} specs")
+    if sync_url:
+        print(f"Syncing with {sync_url}")
     print("Press Ctrl+C to stop\n")
 
     threading.Timer(0.5, lambda: webbrowser.open(url)).start()
@@ -447,6 +459,16 @@ def spec_to_crc_card(spec: dict) -> dict:
         "constraints": spec.get("constraints", []) or [],
         "environment": environment,
     }
+
+
+def cmd_sync(args):
+    """Start the WebSocket sync server for collaborative editing."""
+    import asyncio
+    from .sync import run_server
+    try:
+        asyncio.run(run_server(args.host, args.port))
+    except KeyboardInterrupt:
+        print("\nStopped.")
 
 
 if __name__ == "__main__":

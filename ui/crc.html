@@ -9,7 +9,6 @@
   --bg: #1a1a2e;
   --surface: #16213e;
   --card: #0f3460;
-  --card-border: #e94560;
   --accent: #e94560;
   --text: #eee;
   --text-dim: #999;
@@ -20,6 +19,7 @@
   --orange: #e07838;
   --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  --edit-glow: #e9456040;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,23 +36,15 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 14px 24px;
   background: var(--surface);
   border-bottom: 1px solid #ffffff10;
 }
 
-header h1 {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
+header h1 { font-size: 20px; font-weight: 600; letter-spacing: 1px; }
 header h1 span { color: var(--accent); }
 
-.header-actions {
-  display: flex;
-  gap: 8px;
-}
+.header-actions { display: flex; gap: 8px; align-items: center; }
 
 .btn {
   padding: 8px 16px;
@@ -65,28 +57,26 @@ header h1 span { color: var(--accent); }
   font-family: var(--font);
   transition: all 0.15s;
 }
-
 .btn:hover { background: #ffffff10; }
 .btn-accent { border-color: var(--accent); color: var(--accent); }
 .btn-accent:hover { background: var(--accent); color: white; }
 .btn-green { border-color: var(--green); color: var(--green); }
 .btn-green:hover { background: var(--green); color: var(--bg); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
 
 /* ── Toolbar ── */
 .toolbar {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 24px;
+  padding: 10px 24px;
   background: var(--surface);
   border-bottom: 1px solid #ffffff08;
   font-size: 13px;
 }
-
 .toolbar label { color: var(--text-dim); }
-
-.toolbar select, .toolbar input {
-  padding: 6px 10px;
+.toolbar select {
+  padding: 5px 8px;
   border: 1px solid #ffffff15;
   border-radius: 4px;
   background: var(--bg);
@@ -104,8 +94,25 @@ header h1 span { color: var(--accent); }
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
 .chip-count { background: var(--accent); color: white; }
+.chip-sync { background: var(--green); color: var(--bg); }
+.chip-offline { background: var(--text-dark); color: var(--text); }
+
+/* ── Peer indicators ── */
+.peers {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.peer-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  border: 2px solid var(--bg);
+}
 
 /* ── Board ── */
 .board {
@@ -114,48 +121,50 @@ header h1 span { color: var(--accent); }
   gap: 24px;
   padding: 24px;
   align-items: flex-start;
+  position: relative;
+  z-index: 1;
 }
 
-/* ── CRC Card ── */
+/* ── CRC Card (both view and edit share this shell) ── */
 .crc-card {
-  width: 420px;
+  width: 480px;
   background: var(--card);
   border: 2px solid #ffffff15;
   border-radius: 10px;
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
-  position: relative;
 }
-
 .crc-card:hover {
   border-color: var(--accent);
   box-shadow: 0 4px 24px #e9456030;
 }
-
-.crc-card.dragging {
-  opacity: 0.5;
+.crc-card.editing {
+  border-color: var(--green);
+  box-shadow: 0 4px 30px #4ecca340;
+  width: 540px;
+}
+.crc-card.peer-editing {
   border-color: var(--yellow);
+  box-shadow: 0 4px 24px #f0c04030;
 }
 
-/* Card Header */
+/* ── Card Header ── */
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, var(--accent)20, transparent);
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #e9456018, transparent);
   border-bottom: 1px solid #ffffff10;
-  cursor: grab;
 }
-
-.card-header:active { cursor: grabbing; }
-
+.card-header.edit-header {
+  background: linear-gradient(135deg, #4ecca318, transparent);
+}
 .card-name {
   font-size: 17px;
   font-weight: 700;
   font-family: var(--mono);
 }
-
 .card-package {
   font-size: 11px;
   color: var(--accent);
@@ -163,32 +172,22 @@ header h1 span { color: var(--accent); }
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-
-.card-actions {
-  display: flex;
-  gap: 4px;
-}
-
+.card-actions { display: flex; gap: 4px; }
 .card-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 4px;
+  width: 28px; height: 28px;
+  border: none; border-radius: 4px;
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
   font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
-
 .card-btn:hover { background: #ffffff15; color: var(--text); }
 .card-btn.delete:hover { color: var(--accent); }
 
-/* Card Purpose */
+/* ── Card Purpose ── */
 .card-purpose {
-  padding: 10px 16px;
+  padding: 8px 16px;
   font-size: 12px;
   color: var(--text-dim);
   line-height: 1.5;
@@ -196,75 +195,67 @@ header h1 span { color: var(--accent); }
   font-style: italic;
 }
 
-/* Card Body — two columns */
+/* ── Card Body (two-column CRC layout) ── */
 .card-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 120px;
+  min-height: 100px;
 }
-
-.card-col {
-  padding: 12px 16px;
-}
-
-.card-col:first-child {
-  border-right: 1px solid #ffffff08;
-}
-
+.card-col { padding: 10px 16px; }
+.card-col:first-child { border-right: 1px solid #ffffff08; }
 .card-col h3 {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-dim);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 600;
 }
 
-.responsibility, .collaborator {
+.responsibility {
   font-size: 12px;
-  padding: 4px 0;
+  padding: 3px 0;
   line-height: 1.4;
   display: flex;
   align-items: flex-start;
   gap: 6px;
 }
-
 .responsibility::before {
-  content: "›";
+  content: "\203A";
   color: var(--green);
   font-weight: bold;
   flex-shrink: 0;
 }
-
 .collaborator {
-  cursor: pointer;
-  border-radius: 4px;
+  font-size: 12px;
   padding: 4px 6px;
   margin: 0 -6px;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  border-radius: 4px;
   transition: background 0.1s;
 }
-
 .collaborator:hover { background: #ffffff10; }
-
 .collaborator::before {
-  content: "→";
+  content: "\2192";
   color: var(--blue);
   font-weight: bold;
   flex-shrink: 0;
 }
-
 .collab-name { color: var(--blue); font-family: var(--mono); font-size: 11px; }
 .collab-msgs { color: var(--text-dim); font-size: 10px; margin-left: 4px; }
 
-/* Card Footer — data structures */
+/* ── Card Footer (data tags) ── */
 .card-footer {
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-top: 1px solid #ffffff08;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
-
 .data-tag {
   padding: 3px 8px;
   border-radius: 4px;
@@ -275,13 +266,104 @@ header h1 span { color: var(--accent); }
   font-weight: 600;
 }
 
-/* Card Constraints */
+/* ── Card Constraints ── */
 .card-constraints {
-  padding: 8px 16px 12px;
+  padding: 8px 16px 10px;
   border-top: 1px solid #ffffff08;
 }
-
 .card-constraints h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.constraint {
+  font-size: 11px;
+  color: var(--orange);
+  padding: 2px 0;
+  line-height: 1.4;
+}
+.constraint::before { content: "!"; font-weight: bold; margin-right: 6px; }
+
+/* ── Card Environment ── */
+.card-env {
+  padding: 6px 16px 8px;
+  border-top: 1px solid #ffffff08;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.env-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+  background: #4ecca315;
+  color: var(--green);
+  border: 1px solid #4ecca330;
+}
+
+/* ══════════════════════════════════════
+   EDIT MODE — card-shaped inline editor
+   ══════════════════════════════════════ */
+
+.edit-input, .edit-textarea {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ffffff15;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.edit-input:focus, .edit-textarea:focus {
+  border-color: var(--green);
+}
+.edit-textarea {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+}
+.edit-input-inline {
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 1px dashed #ffffff30;
+  border-radius: 0;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 2px 4px;
+  width: auto;
+}
+.edit-input-inline:focus {
+  border-color: var(--green);
+  border-radius: 4px;
+}
+.edit-input-pkg {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed #ffffff30;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 4px;
+  width: 120px;
+}
+.edit-input-pkg:focus { border-color: var(--green); }
+
+.edit-section {
+  padding: 8px 16px;
+  border-bottom: 1px solid #ffffff08;
+}
+.edit-section h3 {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -289,34 +371,31 @@ header h1 span { color: var(--accent); }
   margin-bottom: 6px;
   font-weight: 600;
 }
-
-.constraint {
-  font-size: 11px;
-  color: var(--orange);
-  padding: 2px 0;
-  line-height: 1.4;
+.edit-hint {
+  font-size: 10px;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  font-style: italic;
+}
+.edit-actions {
+  padding: 10px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid #ffffff10;
+  background: #ffffff05;
 }
 
-.constraint::before {
-  content: "!";
-  font-weight: bold;
-  margin-right: 6px;
-}
-
-/* ── Connection Lines (SVG overlay) ── */
+/* ── SVG connections ── */
 .connections-layer {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
   z-index: 0;
 }
 
-.board { position: relative; z-index: 1; }
-
-/* ── Modal ── */
+/* ── Modal (for YAML export/import only) ── */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -326,28 +405,18 @@ header h1 span { color: var(--accent); }
   align-items: center;
   justify-content: center;
 }
-
 .modal-overlay.open { display: flex; }
-
 .modal {
   background: var(--surface);
   border: 1px solid #ffffff15;
   border-radius: 12px;
-  width: 600px;
+  width: 700px;
   max-height: 85vh;
   overflow-y: auto;
   padding: 24px;
 }
-
-.modal h2 {
-  font-size: 18px;
-  margin-bottom: 16px;
-}
-
-.modal .field {
-  margin-bottom: 14px;
-}
-
+.modal h2 { font-size: 18px; margin-bottom: 16px; }
+.modal .field { margin-bottom: 14px; }
 .modal label {
   display: block;
   font-size: 12px;
@@ -356,33 +425,24 @@ header h1 span { color: var(--accent); }
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-.modal input, .modal textarea, .modal select {
+.modal textarea {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #ffffff15;
   border-radius: 6px;
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
-  font-family: var(--font);
-}
-
-.modal textarea {
-  font-family: var(--mono);
   font-size: 13px;
+  font-family: var(--mono);
   min-height: 100px;
   resize: vertical;
 }
-
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 20px;
 }
-
-/* ── YAML Export Modal ── */
 .yaml-output {
   background: var(--bg);
   border: 1px solid #ffffff15;
@@ -397,9 +457,8 @@ header h1 span { color: var(--accent); }
   color: var(--green);
 }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .crc-card { width: 100%; }
+@media (max-width: 1000px) {
+  .crc-card, .crc-card.editing { width: 100%; }
   .board { padding: 16px; }
 }
 </style>
@@ -409,327 +468,281 @@ header h1 span { color: var(--accent); }
 <header>
   <h1><span>d</span>spec CRC</h1>
   <div class="header-actions">
-    <button class="btn" onclick="importYAML()">Import YAML</button>
-    <button class="btn btn-green" onclick="exportAllYAML()">Export All</button>
-    <button class="btn btn-accent" onclick="openNewCard()">+ New Card</button>
+    <div class="peers" id="peers"></div>
+    <span class="chip chip-offline" id="syncStatus">local</span>
+    <button class="btn btn-sm" onclick="importYAML()">Import</button>
+    <button class="btn btn-sm btn-green" onclick="exportAllYAML()">Export All</button>
+    <button class="btn btn-accent" onclick="addNewCard()">+ New Card</button>
   </div>
 </header>
 
 <div class="toolbar">
   <label>Package:</label>
-  <select id="packageFilter" onchange="filterCards()">
+  <select id="packageFilter" onchange="render()">
     <option value="all">All packages</option>
   </select>
   <label>Cards:</label>
   <span class="chip chip-count" id="cardCount">0</span>
   <div style="flex:1"></div>
-  <label>View:</label>
-  <button class="btn" onclick="toggleConnections()" id="connToggle">Show Links</button>
+  <button class="btn btn-sm" onclick="toggleConnections()" id="connToggle">Show Links</button>
 </div>
 
 <svg class="connections-layer" id="connections"></svg>
-
 <div class="board" id="board"></div>
-
-<!-- New/Edit Card Modal -->
-<div class="modal-overlay" id="cardModal">
-  <div class="modal">
-    <h2 id="modalTitle">New CRC Card</h2>
-    <div class="field">
-      <label>Object Name (PascalCase)</label>
-      <input type="text" id="f_name" placeholder="InvoiceReconciler">
-    </div>
-    <div class="field">
-      <label>Package</label>
-      <input type="text" id="f_package" placeholder="billing">
-    </div>
-    <div class="field">
-      <label>Purpose</label>
-      <textarea id="f_purpose" rows="2" placeholder="What does this object do and why does it exist?"></textarea>
-    </div>
-    <div class="field">
-      <label>Data Structures (one per line: Name: field1 Type, field2 Type)</label>
-      <textarea id="f_data" rows="4" placeholder="Invoice: id UUID, amount Decimal, status String&#10;MatchResult: invoice Invoice, confidence Float"></textarea>
-    </div>
-    <div class="field">
-      <label>Responsibilities — Messages (one per line: name(param Type) -> ReturnType | algorithm step; step; step)</label>
-      <textarea id="f_responsibilities" rows="6" placeholder="match(invoices List&lt;Invoice&gt;, tolerance Float) -> List&lt;MatchResult&gt; | Index by prefix; Compare amounts; Sort by confidence&#10;find_unmatched(invoices List&lt;Invoice&gt;) -> List&lt;Invoice&gt; | Filter unmatched from results"></textarea>
-    </div>
-    <div class="field">
-      <label>Collaborators — Dependencies (one per line: ObjectName: msg1, msg2)</label>
-      <textarea id="f_collaborators" rows="3" placeholder="Notifier: send_alert, send_summary&#10;AuditLog: record_event"></textarea>
-    </div>
-    <div class="field">
-      <label>Constraints (one per line)</label>
-      <textarea id="f_constraints" rows="3" placeholder="O(n log n) time complexity&#10;Never compare across currencies"></textarea>
-    </div>
-    <div class="field">
-      <label>Environment</label>
-      <input type="text" id="f_env" placeholder="python, postgresql, redis">
-    </div>
-    <input type="hidden" id="f_editIndex" value="-1">
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-accent" onclick="saveCard()">Save Card</button>
-    </div>
-  </div>
-</div>
 
 <!-- YAML Export Modal -->
 <div class="modal-overlay" id="yamlModal">
-  <div class="modal" style="width:700px">
-    <h2>Exported YAML Specs</h2>
+  <div class="modal">
+    <h2 id="yamlModalTitle">Exported YAML</h2>
     <pre class="yaml-output" id="yamlOutput"></pre>
     <div class="modal-actions">
-      <button class="btn" onclick="copyYAML()">Copy to Clipboard</button>
-      <button class="btn" onclick="closeYAMLModal()">Close</button>
+      <button class="btn" onclick="copyYAML()">Copy</button>
+      <button class="btn" onclick="document.getElementById('yamlModal').classList.remove('open')">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Import YAML Modal -->
+<!-- Import Modal -->
 <div class="modal-overlay" id="importModal">
-  <div class="modal" style="width:700px">
+  <div class="modal">
     <h2>Import YAML Spec</h2>
     <div class="field">
       <label>Paste a .spec.yml file</label>
       <textarea id="importInput" rows="20" placeholder="object: InvoiceReconciler&#10;package: billing&#10;purpose: ..."></textarea>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn" onclick="document.getElementById('importModal').classList.remove('open')">Cancel</button>
       <button class="btn btn-accent" onclick="doImport()">Import</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── State ──
+// ════════════════════
+// State
+// ════════════════════
 let cards = [];
+let editingIdx = -1;  // which card is in edit mode (-1 = none)
 let showConnections = false;
+let peerId = Math.random().toString(36).slice(2, 6);
+let peerColor = `hsl(${Math.floor(Math.random() * 360)}, 70%, 55%)`;
 
-// ── Persistence ──
-function saveState() {
-  localStorage.setItem('dspec_cards', JSON.stringify(cards));
-}
-
-function loadState() {
-  const saved = localStorage.getItem('dspec_cards');
-  if (saved) {
-    try { cards = JSON.parse(saved); } catch(e) { cards = []; }
-  }
-}
-
-// ── Card Data Model ──
+// ════════════════════
+// Card model
+// ════════════════════
 function makeCard(opts = {}) {
   return {
     name: opts.name || 'NewObject',
     package: opts.package || 'default',
     purpose: opts.purpose || '',
-    data: opts.data || [],       // [{name, fields: [{name, type}]}]
-    messages: opts.messages || [],  // [{name, params, returnType, algorithm}]
-    collaborators: opts.collaborators || [],  // [{name, messages}]
+    data: opts.data || [],
+    messages: opts.messages || [],
+    collaborators: opts.collaborators || [],
     constraints: opts.constraints || [],
     environment: opts.environment || [],
   };
 }
 
-// ── Render ──
+// ════════════════════
+// Persistence
+// ════════════════════
+function saveState() { localStorage.setItem('dspec_cards', JSON.stringify(cards)); }
+function loadState() {
+  try { cards = JSON.parse(localStorage.getItem('dspec_cards')) || []; } catch(e) { cards = []; }
+}
+
+// ════════════════════
+// Render
+// ════════════════════
 function render() {
   const board = document.getElementById('board');
   const filter = document.getElementById('packageFilter').value;
-
   const filtered = filter === 'all' ? cards : cards.filter(c => c.package === filter);
 
-  board.innerHTML = filtered.map((card, i) => {
+  board.innerHTML = filtered.map(card => {
     const idx = cards.indexOf(card);
-    return renderCard(card, idx);
+    return idx === editingIdx ? renderEditCard(card, idx) : renderViewCard(card, idx);
   }).join('');
 
   document.getElementById('cardCount').textContent = filtered.length;
   updatePackageFilter();
   if (showConnections) drawConnections();
   saveState();
+  broadcastState();
 }
 
-function renderCard(card, idx) {
+function renderViewCard(card, idx) {
   const responsibilities = card.messages.map(m => {
-    const params = m.params || '';
     const ret = m.returnType || 'Void';
     const algoPreview = m.algorithm ? m.algorithm.split(';')[0].trim() : '';
-    return `<div class="responsibility"><span><strong>${m.name}</strong>(${params}) → ${ret}${algoPreview ? '<br><span style="color:var(--text-dim);font-size:11px">' + algoPreview + '…</span>' : ''}</span></div>`;
-  }).join('');
+    return `<div class="responsibility"><span><strong>${esc(m.name)}</strong>(${esc(m.params || '')}) &rarr; ${esc(ret)}${algoPreview ? '<br><span style="color:var(--text-dim);font-size:11px">' + esc(algoPreview) + '&hellip;</span>' : ''}</span></div>`;
+  }).join('') || '<span style="color:var(--text-dark);font-size:12px">No messages yet</span>';
 
   const collabs = card.collaborators.map(c =>
-    `<div class="collaborator" onclick="highlightCard('${c.name}')"><span><span class="collab-name">${c.name}</span><span class="collab-msgs">${c.messages.join(', ')}</span></span></div>`
-  ).join('');
+    `<div class="collaborator" onclick="highlightCard('${esc(c.name)}')"><span><span class="collab-name">${esc(c.name)}</span><span class="collab-msgs">${esc(c.messages.join(', '))}</span></span></div>`
+  ).join('') || '<span style="color:var(--text-dark);font-size:12px">None</span>';
 
-  const dataTags = card.data.map(d =>
-    `<span class="data-tag">${d.name}</span>`
-  ).join('');
-
-  const constraintItems = card.constraints.map(c =>
-    `<div class="constraint">${c}</div>`
-  ).join('');
+  const dataTags = card.data.map(d => `<span class="data-tag">${esc(d.name)}</span>`).join('');
+  const constraintItems = card.constraints.map(c => `<div class="constraint">${esc(c)}</div>`).join('');
+  const envTags = card.environment.map(e => `<span class="env-tag">${esc(e)}</span>`).join('');
 
   return `
-    <div class="crc-card" id="card-${idx}" data-name="${card.name}" data-package="${card.package}">
-      <div class="card-header" draggable="true" ondragstart="onDragStart(event, ${idx})">
+    <div class="crc-card" id="card-${idx}" data-name="${esc(card.name)}" data-package="${esc(card.package)}">
+      <div class="card-header">
         <div>
-          <div class="card-package">${card.package}</div>
-          <div class="card-name">${card.name}</div>
+          <div class="card-package">${esc(card.package)}</div>
+          <div class="card-name">${esc(card.name)}</div>
         </div>
         <div class="card-actions">
-          <button class="card-btn" onclick="editCard(${idx})" title="Edit">✎</button>
-          <button class="card-btn" onclick="exportOneYAML(${idx})" title="Export YAML">⬡</button>
-          <button class="card-btn" onclick="duplicateCard(${idx})" title="Duplicate">⧉</button>
-          <button class="card-btn delete" onclick="deleteCard(${idx})" title="Delete">✕</button>
+          <button class="card-btn" onclick="startEdit(${idx})" title="Edit">&#9998;</button>
+          <button class="card-btn" onclick="exportOneYAML(${idx})" title="Export YAML">&#11053;</button>
+          <button class="card-btn" onclick="duplicateCard(${idx})" title="Duplicate">&#10697;</button>
+          <button class="card-btn delete" onclick="deleteCard(${idx})" title="Delete">&#10005;</button>
         </div>
       </div>
-      ${card.purpose ? `<div class="card-purpose">${card.purpose}</div>` : ''}
+      ${card.purpose ? `<div class="card-purpose">${esc(card.purpose)}</div>` : ''}
       <div class="card-body">
-        <div class="card-col">
-          <h3>Responsibilities</h3>
-          ${responsibilities || '<span style="color:var(--text-dark);font-size:12px">No messages defined</span>'}
-        </div>
-        <div class="card-col">
-          <h3>Collaborators</h3>
-          ${collabs || '<span style="color:var(--text-dark);font-size:12px">None</span>'}
-        </div>
+        <div class="card-col"><h3>Responsibilities</h3>${responsibilities}</div>
+        <div class="card-col"><h3>Collaborators</h3>${collabs}</div>
       </div>
       ${dataTags ? `<div class="card-footer">${dataTags}</div>` : ''}
       ${constraintItems ? `<div class="card-constraints"><h3>Constraints</h3>${constraintItems}</div>` : ''}
-    </div>
-  `;
+      ${envTags ? `<div class="card-env">${envTags}</div>` : ''}
+    </div>`;
+}
+
+function renderEditCard(card, idx) {
+  const dataVal = card.data.map(d =>
+    `${d.name}: ${d.fields.map(f => f.name + ' ' + f.type).join(', ')}`
+  ).join('\n');
+
+  const msgsVal = card.messages.map(m =>
+    `${m.name}(${m.params || ''}) -> ${m.returnType || 'Void'}${m.algorithm ? ' | ' + m.algorithm : ''}`
+  ).join('\n');
+
+  const collabVal = card.collaborators.map(c =>
+    `${c.name}: ${c.messages.join(', ')}`
+  ).join('\n');
+
+  return `
+    <div class="crc-card editing" id="card-${idx}" data-name="${esc(card.name)}">
+      <!-- ── Header: name + package inline ── -->
+      <div class="card-header edit-header">
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1">
+          <input class="edit-input-pkg" id="e_pkg" value="${esc(card.package)}" placeholder="package">
+          <input class="edit-input-inline" id="e_name" value="${esc(card.name)}" placeholder="ObjectName">
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-sm btn-green" onclick="saveEdit(${idx})">Save</button>
+          <button class="btn btn-sm" onclick="cancelEdit()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- ── Purpose ── -->
+      <div class="edit-section">
+        <h3>Purpose</h3>
+        <textarea class="edit-textarea" id="e_purpose" rows="2" placeholder="What does this object do and why?">${esc(card.purpose)}</textarea>
+      </div>
+
+      <!-- ── Two-column: Data | Collaborators ── -->
+      <div class="card-body" style="min-height:auto">
+        <div class="card-col">
+          <h3>Data Structures</h3>
+          <div class="edit-hint">Name: field Type, field Type</div>
+          <textarea class="edit-textarea" id="e_data" rows="4" placeholder="Invoice: id UUID, amount Decimal">${esc(dataVal)}</textarea>
+        </div>
+        <div class="card-col">
+          <h3>Collaborators</h3>
+          <div class="edit-hint">ObjectName: msg1, msg2</div>
+          <textarea class="edit-textarea" id="e_collabs" rows="4" placeholder="Notifier: send_alert, send_summary">${esc(collabVal)}</textarea>
+        </div>
+      </div>
+
+      <!-- ── Responsibilities (full width, this is the main spec pane) ── -->
+      <div class="edit-section">
+        <h3>Responsibilities &mdash; Messages</h3>
+        <div class="edit-hint">name(param Type, param Type) -> ReturnType | algo step; step; step</div>
+        <textarea class="edit-textarea" id="e_msgs" rows="5" placeholder="match(invoices List&lt;Invoice&gt;) -> List&lt;Result&gt; | Index by prefix; Compare amounts; Sort">${esc(msgsVal)}</textarea>
+      </div>
+
+      <!-- ── Two-column: Constraints | Environment ── -->
+      <div class="card-body" style="min-height:auto">
+        <div class="card-col">
+          <h3>Constraints</h3>
+          <textarea class="edit-textarea" id="e_constraints" rows="3" placeholder="O(n log n) or better&#10;Never compare across currencies">${esc(card.constraints.join('\n'))}</textarea>
+        </div>
+        <div class="card-col">
+          <h3>Environment</h3>
+          <div class="edit-hint">language, tool, tool</div>
+          <input class="edit-input" id="e_env" value="${esc(card.environment.join(', '))}" placeholder="python, postgresql">
+        </div>
+      </div>
+
+      <div class="edit-actions">
+        <button class="btn btn-sm" onclick="cancelEdit()">Cancel</button>
+        <button class="btn btn-sm btn-green" onclick="saveEdit(${idx})">Save</button>
+      </div>
+    </div>`;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function updatePackageFilter() {
   const sel = document.getElementById('packageFilter');
-  const current = sel.value;
-  const packages = [...new Set(cards.map(c => c.package))].sort();
+  const cur = sel.value;
+  const pkgs = [...new Set(cards.map(c => c.package))].sort();
   sel.innerHTML = '<option value="all">All packages</option>' +
-    packages.map(p => `<option value="${p}" ${p === current ? 'selected' : ''}>${p}</option>`).join('');
+    pkgs.map(p => `<option value="${p}" ${p===cur?'selected':''}>${p}</option>`).join('');
 }
 
-// ── Modal ──
-function openNewCard() {
-  document.getElementById('modalTitle').textContent = 'New CRC Card';
-  document.getElementById('f_name').value = '';
-  document.getElementById('f_package').value = '';
-  document.getElementById('f_purpose').value = '';
-  document.getElementById('f_data').value = '';
-  document.getElementById('f_responsibilities').value = '';
-  document.getElementById('f_collaborators').value = '';
-  document.getElementById('f_constraints').value = '';
-  document.getElementById('f_env').value = '';
-  document.getElementById('f_editIndex').value = '-1';
-  document.getElementById('cardModal').classList.add('open');
-  document.getElementById('f_name').focus();
+// ════════════════════
+// Edit mode
+// ════════════════════
+function startEdit(idx) {
+  editingIdx = idx;
+  render();
+  const el = document.getElementById('e_name');
+  if (el) el.focus();
 }
 
-function editCard(idx) {
-  const card = cards[idx];
-  document.getElementById('modalTitle').textContent = `Edit: ${card.name}`;
-  document.getElementById('f_name').value = card.name;
-  document.getElementById('f_package').value = card.package;
-  document.getElementById('f_purpose').value = card.purpose;
-
-  document.getElementById('f_data').value = card.data.map(d =>
-    `${d.name}: ${d.fields.map(f => `${f.name} ${f.type}`).join(', ')}`
-  ).join('\n');
-
-  document.getElementById('f_responsibilities').value = card.messages.map(m =>
-    `${m.name}(${m.params || ''}) -> ${m.returnType || 'Void'}${m.algorithm ? ' | ' + m.algorithm : ''}`
-  ).join('\n');
-
-  document.getElementById('f_collaborators').value = card.collaborators.map(c =>
-    `${c.name}: ${c.messages.join(', ')}`
-  ).join('\n');
-
-  document.getElementById('f_constraints').value = card.constraints.join('\n');
-  document.getElementById('f_env').value = card.environment.join(', ');
-  document.getElementById('f_editIndex').value = idx;
-  document.getElementById('cardModal').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('cardModal').classList.remove('open');
-}
-
-function saveCard() {
-  const name = document.getElementById('f_name').value.trim();
-  if (!name) { alert('Object name is required'); return; }
-
-  const card = makeCard({
-    name,
-    package: document.getElementById('f_package').value.trim() || 'default',
-    purpose: document.getElementById('f_purpose').value.trim(),
-    data: parseData(document.getElementById('f_data').value),
-    messages: parseMessages(document.getElementById('f_responsibilities').value),
-    collaborators: parseCollaborators(document.getElementById('f_collaborators').value),
-    constraints: parseLines(document.getElementById('f_constraints').value),
-    environment: document.getElementById('f_env').value.split(',').map(s => s.trim()).filter(Boolean),
-  });
-
-  const editIdx = parseInt(document.getElementById('f_editIndex').value);
-  if (editIdx >= 0) {
-    cards[editIdx] = card;
-  } else {
-    cards.push(card);
-  }
-
-  closeModal();
+function cancelEdit() {
+  editingIdx = -1;
   render();
 }
 
-// ── Parsers ──
-function parseData(text) {
-  return text.split('\n').filter(l => l.trim()).map(line => {
-    const [name, ...rest] = line.split(':');
-    const fieldsStr = rest.join(':').trim();
-    const fields = fieldsStr.split(',').filter(f => f.trim()).map(f => {
-      const parts = f.trim().split(/\s+/);
-      const fname = parts[0];
-      const ftype = parts.slice(1).join(' ') || 'String';
-      return { name: fname, type: ftype };
-    });
-    return { name: name.trim(), fields };
+function saveEdit(idx) {
+  cards[idx] = makeCard({
+    name: document.getElementById('e_name').value.trim() || 'Unnamed',
+    package: document.getElementById('e_pkg').value.trim() || 'default',
+    purpose: document.getElementById('e_purpose').value.trim(),
+    data: parseData(document.getElementById('e_data').value),
+    messages: parseMessages(document.getElementById('e_msgs').value),
+    collaborators: parseCollaborators(document.getElementById('e_collabs').value),
+    constraints: parseLines(document.getElementById('e_constraints').value),
+    environment: document.getElementById('e_env').value.split(',').map(s => s.trim()).filter(Boolean),
   });
+  editingIdx = -1;
+  render();
 }
 
-function parseMessages(text) {
-  return text.split('\n').filter(l => l.trim()).map(line => {
-    const [signature, ...algoParts] = line.split('|');
-    const algorithm = algoParts.join('|').trim();
-
-    const sigMatch = signature.match(/^(\w+)\(([^)]*)\)\s*->\s*(.+)$/);
-    if (sigMatch) {
-      return {
-        name: sigMatch[1],
-        params: sigMatch[2].trim(),
-        returnType: sigMatch[3].trim(),
-        algorithm,
-      };
-    }
-    // Fallback: just a name
-    return { name: signature.trim(), params: '', returnType: 'Void', algorithm };
-  });
+function addNewCard() {
+  cards.push(makeCard({ name: 'NewObject', package: 'default' }));
+  editingIdx = cards.length - 1;
+  render();
+  const board = document.getElementById('board');
+  board.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function parseCollaborators(text) {
-  return text.split('\n').filter(l => l.trim()).map(line => {
-    const [name, ...rest] = line.split(':');
-    const msgs = rest.join(':').split(',').map(s => s.trim()).filter(Boolean);
-    return { name: name.trim(), messages: msgs };
-  });
-}
-
-function parseLines(text) {
-  return text.split('\n').map(l => l.trim()).filter(Boolean);
-}
-
-// ── Card Actions ──
+// ════════════════════
+// Card actions
+// ════════════════════
 function deleteCard(idx) {
   if (confirm(`Delete ${cards[idx].name}?`)) {
+    if (editingIdx === idx) editingIdx = -1;
+    else if (editingIdx > idx) editingIdx--;
     cards.splice(idx, 1);
     render();
   }
@@ -737,8 +750,8 @@ function deleteCard(idx) {
 
 function duplicateCard(idx) {
   const copy = JSON.parse(JSON.stringify(cards[idx]));
-  copy.name = copy.name + 'Copy';
-  cards.push(copy);
+  copy.name += 'Copy';
+  cards.splice(idx + 1, 0, copy);
   render();
 }
 
@@ -748,312 +761,205 @@ function highlightCard(name) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.style.borderColor = 'var(--yellow)';
     el.style.boxShadow = '0 0 30px #f0c04050';
-    setTimeout(() => {
-      el.style.borderColor = '';
-      el.style.boxShadow = '';
-    }, 1500);
+    setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1500);
   }
 }
 
-// ── YAML Export ──
-function cardToYAML(card) {
-  let y = '';
-  y += `object: ${card.name}\n`;
-  y += `package: ${card.package}\n\n`;
-  y += `purpose: >\n  ${card.purpose || 'TODO: describe purpose'}\n\n`;
+// ════════════════════
+// Parsers
+// ════════════════════
+function parseData(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const [name, ...rest] = line.split(':');
+    const fields = rest.join(':').trim().split(',').filter(f => f.trim()).map(f => {
+      const parts = f.trim().split(/\s+/);
+      return { name: parts[0], type: parts.slice(1).join(' ') || 'String' };
+    });
+    return { name: name.trim(), fields };
+  });
+}
 
-  // Data
-  y += `data:\n`;
+function parseMessages(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const [signature, ...algoParts] = line.split('|');
+    const algorithm = algoParts.join('|').trim();
+    const m = signature.match(/^(\w+)\(([^)]*)\)\s*->\s*(.+)$/);
+    if (m) return { name: m[1], params: m[2].trim(), returnType: m[3].trim(), algorithm };
+    return { name: signature.trim(), params: '', returnType: 'Void', algorithm };
+  });
+}
+
+function parseCollaborators(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const [name, ...rest] = line.split(':');
+    return { name: name.trim(), messages: rest.join(':').split(',').map(s => s.trim()).filter(Boolean) };
+  });
+}
+
+function parseLines(text) { return text.split('\n').map(l => l.trim()).filter(Boolean); }
+
+// ════════════════════
+// YAML export/import
+// ════════════════════
+function cardToYAML(card) {
+  let y = `object: ${card.name}\npackage: ${card.package}\n\npurpose: >\n  ${card.purpose || 'TODO: describe purpose'}\n\ndata:\n`;
   if (card.data.length === 0) {
-    y += `  # TODO: define data structures\n`;
     y += `  Item:\n    fields:\n      id: UUID\n`;
   } else {
     for (const d of card.data) {
       y += `  ${d.name}:\n    fields:\n`;
-      for (const f of d.fields) {
-        y += `      ${f.name}: ${f.type}\n`;
-      }
+      for (const f of d.fields) y += `      ${f.name}: ${f.type}\n`;
     }
   }
   y += '\n';
-
-  // Protocols
   const msgNames = card.messages.map(m => m.name);
-  if (msgNames.length > 0) {
-    y += `protocols:\n`;
-    y += `  messages: [${msgNames.join(', ')}]\n\n`;
-  }
-
-  // Messages
+  if (msgNames.length) y += `protocols:\n  messages: [${msgNames.join(', ')}]\n\n`;
   y += `messages:\n`;
   if (card.messages.length === 0) {
-    y += `  # TODO: define messages\n`;
     y += `  example:\n    input:\n      id: UUID\n    output: Void\n    algorithm:\n      - TODO\n`;
   } else {
     for (const m of card.messages) {
       y += `  ${m.name}:\n`;
-      // Parse params
       if (m.params) {
         y += `    input:\n`;
-        const params = m.params.split(',').map(p => p.trim()).filter(Boolean);
-        for (const p of params) {
-          const parts = p.split(/\s+/);
-          const pname = parts[0];
-          const ptype = parts.slice(1).join(' ') || 'String';
-          y += `      ${pname}: ${ptype}\n`;
+        for (const p of m.params.split(',').map(s=>s.trim()).filter(Boolean)) {
+          const pp = p.split(/\s+/);
+          y += `      ${pp[0]}: ${pp.slice(1).join(' ') || 'String'}\n`;
         }
-      } else {
-        y += `    input: {}\n`;
-      }
-      y += `    output: ${m.returnType || 'Void'}\n`;
-      y += `    algorithm:\n`;
+      } else y += `    input: {}\n`;
+      y += `    output: ${m.returnType || 'Void'}\n    algorithm:\n`;
       if (m.algorithm) {
-        const steps = m.algorithm.split(';').map(s => s.trim()).filter(Boolean);
-        for (const step of steps) {
+        for (const step of m.algorithm.split(';').map(s=>s.trim()).filter(Boolean))
           y += `      - ${step}\n`;
-        }
-      } else {
-        y += `      - TODO\n`;
-      }
+      } else y += `      - TODO\n`;
     }
   }
   y += '\n';
-
-  // Constraints
-  if (card.constraints.length > 0) {
+  if (card.constraints.length) {
     y += `constraints:\n`;
-    for (const c of card.constraints) {
-      y += `  - ${c}\n`;
-    }
+    for (const c of card.constraints) y += `  - ${c}\n`;
     y += '\n';
   }
-
-  // Environment
-  if (card.environment.length > 0) {
-    y += `environment:\n`;
-    y += `  language: ${card.environment[0]}\n`;
-    if (card.environment.length > 1) {
-      y += `  needs: [${card.environment.slice(1).join(', ')}]\n`;
-    }
+  if (card.environment.length) {
+    y += `environment:\n  language: ${card.environment[0]}\n`;
+    if (card.environment.length > 1) y += `  needs: [${card.environment.slice(1).join(', ')}]\n`;
     y += `  os: any\n\n`;
   }
-
-  // Dependencies
-  if (card.collaborators.length > 0) {
+  if (card.collaborators.length) {
     y += `dependencies:\n`;
-    for (const c of card.collaborators) {
-      y += `  ${c.name}:\n`;
-      y += `    messages: [${c.messages.join(', ')}]\n`;
-    }
+    for (const c of card.collaborators) y += `  ${c.name}:\n    messages: [${c.messages.join(', ')}]\n`;
   }
-
   return y;
 }
 
 function exportAllYAML() {
-  if (cards.length === 0) { alert('No cards to export'); return; }
-  const yaml = cards.map(c => cardToYAML(c)).join('\n---\n\n');
-  document.getElementById('yamlOutput').textContent = yaml;
+  if (!cards.length) { alert('No cards'); return; }
+  document.getElementById('yamlModalTitle').textContent = 'Exported YAML — All Cards';
+  document.getElementById('yamlOutput').textContent = cards.map(c => cardToYAML(c)).join('\n---\n\n');
   document.getElementById('yamlModal').classList.add('open');
 }
 
 function exportOneYAML(idx) {
-  const yaml = cardToYAML(cards[idx]);
-  document.getElementById('yamlOutput').textContent = yaml;
+  document.getElementById('yamlModalTitle').textContent = `Exported: ${cards[idx].name}`;
+  document.getElementById('yamlOutput').textContent = cardToYAML(cards[idx]);
   document.getElementById('yamlModal').classList.add('open');
 }
 
 function copyYAML() {
-  const text = document.getElementById('yamlOutput').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('Copied to clipboard!');
-  });
+  navigator.clipboard.writeText(document.getElementById('yamlOutput').textContent)
+    .then(() => alert('Copied!'));
 }
 
-function closeYAMLModal() {
-  document.getElementById('yamlModal').classList.remove('open');
-}
-
-// ── YAML Import ──
 function importYAML() {
   document.getElementById('importInput').value = '';
   document.getElementById('importModal').classList.add('open');
 }
 
-function closeImportModal() {
-  document.getElementById('importModal').classList.remove('open');
-}
-
 function doImport() {
-  const text = document.getElementById('importInput').value;
   try {
-    const card = parseYAMLSpec(text);
+    const card = parseYAMLSpec(document.getElementById('importInput').value);
     cards.push(card);
-    closeImportModal();
+    document.getElementById('importModal').classList.remove('open');
     render();
-  } catch (e) {
-    alert('Parse error: ' + e.message);
-  }
+  } catch (e) { alert('Parse error: ' + e.message); }
 }
 
 function parseYAMLSpec(text) {
-  // Minimal YAML parser for dspec format
-  const lines = text.split('\n');
-  const spec = {};
-  let currentKey = null;
-  let currentSubKey = null;
-  let currentSubSubKey = null;
-  let indent = 0;
-
-  // Simple line-by-line parse
-  for (const line of lines) {
-    const trimmed = line.trimEnd();
-    if (!trimmed || trimmed.startsWith('#') || trimmed === '---') continue;
-
-    const lineIndent = line.search(/\S/);
-
-    // Top-level key
-    const topMatch = trimmed.match(/^(\w+):\s*(.*)$/);
-    if (lineIndent === 0 && topMatch) {
-      currentKey = topMatch[1];
-      const val = topMatch[2].trim();
-      if (val && val !== '>' && val !== '|' && !val.startsWith('{')) {
-        spec[currentKey] = val;
-      } else if (!val || val === '>' || val === '|') {
-        spec[currentKey] = {};
-      }
-      currentSubKey = null;
-      currentSubSubKey = null;
-      continue;
-    }
-  }
-
-  // Fallback: use regex-based extraction
-  const getName = (key) => {
-    const m = text.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
-    return m ? m[1].trim() : '';
-  };
-
-  const name = getName('object') || 'ImportedObject';
+  const getName = (key) => { const m = text.match(new RegExp(`^${key}:\\s*(.+)$`, 'm')); return m ? m[1].trim() : ''; };
+  const name = getName('object') || 'Imported';
   const pkg = getName('package') || 'default';
-
-  // Purpose
   let purpose = '';
-  const purposeMatch = text.match(/^purpose:\s*>?\s*\n((?:\s+.+\n?)*)/m);
-  if (purposeMatch) {
-    purpose = purposeMatch[1].replace(/\n\s*/g, ' ').trim();
-  } else {
-    purpose = getName('purpose');
-  }
+  const pm = text.match(/^purpose:\s*>?\s*\n((?:\s+.+\n?)*)/m);
+  if (pm) purpose = pm[1].replace(/\n\s*/g, ' ').trim();
+  else purpose = getName('purpose');
 
-  // Data structures
   const data = [];
-  const dataMatch = text.match(/^data:\n((?:\s+.+\n?)*)/m);
-  if (dataMatch) {
-    const dataBlock = dataMatch[1];
-    const structRegex = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
-    let sm;
-    while ((sm = structRegex.exec(dataBlock)) !== null) {
-      const structName = sm[1];
-      if (structName === 'description') continue;
+  const dm = text.match(/^data:\n((?:\s+.+\n?)*)/m);
+  if (dm) {
+    const re = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
+    let m;
+    while ((m = re.exec(dm[1])) !== null) {
+      if (m[1] === 'description') continue;
       const fields = [];
-      const fieldRegex = /^\s{6}(\w+):\s*(.+)$/gm;
+      const fr = /^\s{6}(\w+):\s*(.+)$/gm;
       let fm;
-      const body = sm[2];
-      while ((fm = fieldRegex.exec(body)) !== null) {
-        if (fm[1] === 'type' || fm[1] === 'enum' || fm[1] === 'default' || fm[1] === 'description') continue;
+      while ((fm = fr.exec(m[2])) !== null) {
+        if (['type','enum','default','description'].includes(fm[1])) continue;
         fields.push({ name: fm[1], type: fm[2].trim() });
       }
-      if (fields.length > 0) {
-        data.push({ name: structName, fields });
-      }
+      if (fields.length) data.push({ name: m[1], fields });
     }
   }
 
-  // Messages
   const messages = [];
-  const msgsMatch = text.match(/^messages:\n((?:\s+.+\n?)*)/m);
-  if (msgsMatch) {
-    const msgBlock = msgsMatch[1];
-    const msgRegex = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
-    let mm;
-    while ((mm = msgRegex.exec(msgBlock)) !== null) {
-      const msgName = mm[1];
-      const body = mm[2];
-
-      // Parse input params
+  const mm = text.match(/^messages:\n((?:\s+.+\n?)*)/m);
+  if (mm) {
+    const re = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
+    let m;
+    while ((m = re.exec(mm[1])) !== null) {
       let params = '';
-      const inputMatch = body.match(/input:\n((?:\s{6}\w+:.+\n?)*)/);
-      if (inputMatch) {
-        const paramLines = inputMatch[1].match(/^\s{6}(\w+):\s*(.+)$/gm) || [];
-        params = paramLines.map(l => {
-          const pm = l.match(/^\s+(\w+):\s*(.+)$/);
-          return pm ? `${pm[1]} ${pm[2].trim()}` : '';
+      const im = m[2].match(/input:\n((?:\s{6}\w+:.+\n?)*)/);
+      if (im) {
+        params = (im[1].match(/^\s{6}(\w+):\s*(.+)$/gm) || []).map(l => {
+          const p = l.match(/^\s+(\w+):\s*(.+)$/);
+          return p ? `${p[1]} ${p[2].trim()}` : '';
         }).filter(Boolean).join(', ');
       }
-
-      // Parse output
-      const outMatch = body.match(/output:\s*(.+)/);
-      const returnType = outMatch ? outMatch[1].trim() : 'Void';
-
-      // Parse algorithm
-      const algoSteps = [];
-      const algoMatch = body.match(/algorithm:\n((?:\s{6}-.+\n?)*)/);
-      if (algoMatch) {
-        const stepRegex = /^\s{6}-\s*(.+)$/gm;
-        let sm;
-        while ((sm = stepRegex.exec(algoMatch[1])) !== null) {
-          algoSteps.push(sm[1].trim());
-        }
-      }
-
-      messages.push({
-        name: msgName,
-        params,
-        returnType,
-        algorithm: algoSteps.join('; '),
-      });
+      const om = m[2].match(/output:\s*(.+)/);
+      const steps = [];
+      const am = m[2].match(/algorithm:\n((?:\s{6}-.+\n?)*)/);
+      if (am) { const sr = /^\s{6}-\s*(.+)$/gm; let s; while ((s = sr.exec(am[1])) !== null) steps.push(s[1].trim()); }
+      messages.push({ name: m[1], params, returnType: om ? om[1].trim() : 'Void', algorithm: steps.join('; ') });
     }
   }
 
-  // Dependencies
   const collaborators = [];
-  const depsMatch = text.match(/^dependencies:\n((?:\s+.+\n?)*)/m);
-  if (depsMatch) {
-    const depRegex = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
-    let dm;
-    while ((dm = depRegex.exec(depsMatch[1])) !== null) {
-      const depName = dm[1];
-      const msgsMatch2 = dm[2].match(/messages:\s*\[([^\]]+)\]/);
-      const msgs = msgsMatch2 ? msgsMatch2[1].split(',').map(s => s.trim()) : [];
-      collaborators.push({ name: depName, messages: msgs });
+  const dpm = text.match(/^dependencies:\n((?:\s+.+\n?)*)/m);
+  if (dpm) {
+    const re = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
+    let m;
+    while ((m = re.exec(dpm[1])) !== null) {
+      const mm2 = m[2].match(/messages:\s*\[([^\]]+)\]/);
+      collaborators.push({ name: m[1], messages: mm2 ? mm2[1].split(',').map(s=>s.trim()) : [] });
     }
   }
 
-  // Constraints
   const constraints = [];
-  const conMatch = text.match(/^constraints:\n((?:\s+-\s+.+\n?)*)/m);
-  if (conMatch) {
-    const cRegex = /^\s+-\s+(.+)$/gm;
-    let cm;
-    while ((cm = cRegex.exec(conMatch[1])) !== null) {
-      constraints.push(cm[1].trim());
-    }
-  }
+  const cm = text.match(/^constraints:\n((?:\s+-\s+.+\n?)*)/m);
+  if (cm) { const cr = /^\s+-\s+(.+)$/gm; let c; while ((c = cr.exec(cm[1])) !== null) constraints.push(c[1].trim()); }
 
-  // Environment
   const environment = [];
-  const langMatch = text.match(/language:\s*(.+)/);
-  if (langMatch) environment.push(langMatch[1].trim());
-  const needsMatch = text.match(/needs:\s*\[([^\]]+)\]/);
-  if (needsMatch) {
-    environment.push(...needsMatch[1].split(',').map(s => s.trim()));
-  }
+  const lm = text.match(/language:\s*(.+)/);
+  if (lm) environment.push(lm[1].trim());
+  const nm = text.match(/needs:\s*\[([^\]]+)\]/);
+  if (nm) environment.push(...nm[1].split(',').map(s=>s.trim()));
 
   return makeCard({ name, package: pkg, purpose, data, messages, collaborators, constraints, environment });
 }
 
-// ── Connections ──
+// ════════════════════
+// Connections
+// ════════════════════
 function toggleConnections() {
   showConnections = !showConnections;
   document.getElementById('connToggle').textContent = showConnections ? 'Hide Links' : 'Show Links';
@@ -1064,28 +970,20 @@ function toggleConnections() {
 function drawConnections() {
   const svg = document.getElementById('connections');
   svg.innerHTML = '';
-  const cardNames = new Map();
-
+  const positions = new Map();
   document.querySelectorAll('.crc-card').forEach(el => {
-    const name = el.dataset.name;
-    const rect = el.getBoundingClientRect();
-    cardNames.set(name, {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-    });
+    const r = el.getBoundingClientRect();
+    positions.set(el.dataset.name, { x: r.left + r.width/2, y: r.top + r.height/2 });
   });
-
   for (const card of cards) {
-    const from = cardNames.get(card.name);
+    const from = positions.get(card.name);
     if (!from) continue;
-    for (const collab of card.collaborators) {
-      const to = cardNames.get(collab.name);
+    for (const c of card.collaborators) {
+      const to = positions.get(c.name);
       if (!to) continue;
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', from.x);
-      line.setAttribute('y1', from.y);
-      line.setAttribute('x2', to.x);
-      line.setAttribute('y2', to.y);
+      line.setAttribute('x1', from.x); line.setAttribute('y1', from.y);
+      line.setAttribute('x2', to.x); line.setAttribute('y2', to.y);
       line.setAttribute('stroke', '#e9456050');
       line.setAttribute('stroke-width', '2');
       line.setAttribute('stroke-dasharray', '6 4');
@@ -1094,43 +992,92 @@ function drawConnections() {
   }
 }
 
-// ── Drag (reorder) ──
-let dragIdx = -1;
-function onDragStart(e, idx) {
-  dragIdx = idx;
-  e.dataTransfer.effectAllowed = 'move';
+// ════════════════════
+// WebSocket Sync (collaborative)
+// ════════════════════
+let ws = null;
+let peers = new Map();
+
+function connectSync() {
+  const params = new URLSearchParams(window.location.search);
+  const wsUrl = params.get('sync');
+  if (!wsUrl) return;
+
+  try {
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      document.getElementById('syncStatus').className = 'chip chip-sync';
+      document.getElementById('syncStatus').textContent = 'synced';
+      ws.send(JSON.stringify({ type: 'join', peer: peerId, color: peerColor }));
+    };
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'state' && msg.peer !== peerId) {
+        cards = msg.cards;
+        editingIdx = -1;
+        render();
+      }
+      if (msg.type === 'join' && msg.peer !== peerId) {
+        peers.set(msg.peer, msg.color);
+        renderPeers();
+      }
+      if (msg.type === 'leave') {
+        peers.delete(msg.peer);
+        renderPeers();
+      }
+    };
+    ws.onclose = () => {
+      document.getElementById('syncStatus').className = 'chip chip-offline';
+      document.getElementById('syncStatus').textContent = 'offline';
+      setTimeout(connectSync, 3000);
+    };
+  } catch(e) { /* sync is optional */ }
 }
 
-// ── Init ──
+function broadcastState() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'state', peer: peerId, cards }));
+  }
+}
+
+function renderPeers() {
+  const el = document.getElementById('peers');
+  el.innerHTML = [...peers.entries()].map(([id, color]) =>
+    `<div class="peer-dot" style="background:${color}" title="Peer: ${id}">${id.slice(0,2).toUpperCase()}</div>`
+  ).join('');
+}
+
+// ════════════════════
+// Init
+// ════════════════════
 loadState();
 
-// Fetch preloaded specs from CLI
 fetch('/api/preload')
   .then(r => r.json())
   .then(preloaded => {
-    if (preloaded && preloaded.length > 0) {
-      // Merge preloaded cards (avoid duplicates by name)
-      const existingNames = new Set(cards.map(c => c.name));
+    if (preloaded && preloaded.length) {
+      const existing = new Set(cards.map(c => c.name));
       for (const card of preloaded) {
-        if (!existingNames.has(card.name)) {
-          cards.push(card);
-        }
+        if (!existing.has(card.name)) cards.push(card);
       }
     }
     render();
   })
-  .catch(() => render());  // Offline/static file mode — just render what's in localStorage
+  .catch(() => render());
 
-// Keyboard
+connectSync();
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    closeModal();
-    closeYAMLModal();
-    closeImportModal();
+    if (editingIdx >= 0) cancelEdit();
+    document.getElementById('yamlModal').classList.remove('open');
+    document.getElementById('importModal').classList.remove('open');
+  }
+  if (e.ctrlKey && e.key === 'Enter' && editingIdx >= 0) {
+    saveEdit(editingIdx);
   }
 });
 
-// Redraw connections on scroll/resize
 window.addEventListener('scroll', () => { if (showConnections) drawConnections(); });
 window.addEventListener('resize', () => { if (showConnections) drawConnections(); });
 </script>
