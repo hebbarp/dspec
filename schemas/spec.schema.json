@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DSpec Object Specification",
+  "description": "Distributed object specification format based on Wirth's principle: Algorithm + Data Structure = Program",
+  "type": "object",
+  "required": ["object", "purpose", "data", "messages"],
+  "additionalProperties": false,
+  "properties": {
+    "object": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]+$",
+      "description": "Object name in PascalCase"
+    },
+    "package": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "Package/domain this object belongs to"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 20,
+      "description": "What this object does and why it exists. Must be at least 20 characters to force thoughtful description."
+    },
+    "data": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Data structures this object works with",
+      "additionalProperties": {
+        "$ref": "#/$defs/DataStructure"
+      }
+    },
+    "protocols": {
+      "type": "object",
+      "description": "Message groupings (like Smalltalk protocols: queries, commands, events)",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "messages": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Messages this object responds to",
+      "additionalProperties": {
+        "$ref": "#/$defs/Message"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Non-functional requirements and invariants"
+    },
+    "environment": {
+      "$ref": "#/$defs/Environment"
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Other objects this object sends messages to",
+      "additionalProperties": {
+        "$ref": "#/$defs/Dependency"
+      }
+    }
+  },
+  "$defs": {
+    "DataStructure": {
+      "type": "object",
+      "required": ["fields"],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/Field"
+          }
+        }
+      }
+    },
+    "Field": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Simple type declaration like 'String', 'Int', 'List<Invoice>'"
+        },
+        {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": { "type": "string" },
+            "description": { "type": "string" },
+            "default": {},
+            "enum": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      ]
+    },
+    "Message": {
+      "type": "object",
+      "required": ["input", "output", "algorithm"],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "input": {
+          "type": "object",
+          "description": "Named input parameters with types",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "output": {
+          "type": "string",
+          "description": "Return type"
+        },
+        "algorithm": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Step-by-step algorithm in structured English"
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "errors": {
+          "type": "object",
+          "description": "Error conditions and what to return",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Environment": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string",
+          "description": "Primary implementation language"
+        },
+        "runtime": {
+          "type": "string"
+        },
+        "needs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required tools, databases, services"
+        },
+        "os": {
+          "type": "string",
+          "enum": ["any", "linux", "windows", "macos"]
+        }
+      }
+    },
+    "Dependency": {
+      "type": "object",
+      "required": ["messages"],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Messages this object sends to the dependency"
+        }
+      }
+    }
+  }
+}

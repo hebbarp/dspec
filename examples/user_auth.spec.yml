@@ -1,0 +1,113 @@
+object: UserAuthenticator
+package: auth
+
+purpose: >
+  Handles user authentication via email/password and token-based
+  sessions. Enforces rate limiting on failed attempts and manages
+  session lifecycle. Gateway for all authenticated operations.
+
+data:
+  User:
+    description: A registered user in the system
+    fields:
+      id: UUID
+      email: String
+      password_hash: String
+      created_at: DateTime
+      locked_until: Optional<DateTime>
+      failed_attempts: Int
+
+  Session:
+    description: An active authenticated session
+    fields:
+      token: String
+      user_id: UUID
+      created_at: DateTime
+      expires_at: DateTime
+      ip_address: String
+
+  AuthResult:
+    description: Outcome of an authentication attempt
+    fields:
+      success: Boolean
+      session: Optional<Session>
+      error:
+        type: String
+        enum: [invalid_credentials, account_locked, rate_limited, expired]
+
+protocols:
+  commands:
+    - login
+    - logout
+    - refresh
+  queries:
+    - validate
+
+messages:
+  login:
+    description: Authenticate a user and create a session
+    input:
+      email: String
+      password: String
+      ip_address: String
+    output: AuthResult
+    algorithm:
+      - Look up user by email
+      - If not found, return AuthResult with error = invalid_credentials
+      - If user.locked_until > now, return error = account_locked
+      - Hash provided password and compare with stored password_hash
+      - If mismatch, increment failed_attempts
+      - If failed_attempts >= 5, set locked_until to now + 30 minutes
+      - If match, reset failed_attempts to 0
+      - Generate cryptographically random session token (256 bits)
+      - Create Session with expiry = now + 24 hours
+      - Return AuthResult with success = true and the session
+    constraints:
+      - Password comparison must be constant-time to prevent timing attacks
+      - Token generation must use CSPRNG
+    errors:
+      invalid_credentials: Email not found or password mismatch (same error for both)
+      account_locked: Too many failed attempts
+
+  logout:
+    description: Destroy an active session
+    input:
+      token: String
+    output: Boolean
+    algorithm:
+      - Look up session by token
+      - If found, delete it and return true
+      - If not found, return false (idempotent)
+
+  validate:
+    description: Check if a session token is valid
+    input:
+      token: String
+    output: Optional<User>
+    algorithm:
+      - Look up session by token
+      - If not found or expires_at < now, return None
+      - Look up user by session.user_id
+      - Return the user
+
+  refresh:
+    description: Extend a valid session
+    input:
+      token: String
+    output: AuthResult
+    algorithm:
+      - Validate the token using the validate message
+      - If invalid, return AuthResult with error = expired
+      - Update session.expires_at to now + 24 hours
+      - Return AuthResult with success = true
+
+constraints:
+  - Never reveal whether an email exists in error messages
+  - All tokens must be invalidated on password change
+  - Session storage must support TTL-based auto-expiry
+
+environment:
+  language: python
+  runtime: python-3.12
+  needs: [redis, postgresql]
+  os: any

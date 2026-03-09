@@ -1,0 +1,137 @@
+object: InvoiceReconciler
+package: billing
+
+purpose: >
+  Matches incoming bank transactions against outstanding invoices
+  using reference codes and fuzzy amount matching. Flags unmatched
+  transactions for manual review. Core to the billing pipeline —
+  runs nightly after bank feeds are imported.
+
+data:
+  Invoice:
+    description: An outstanding invoice awaiting payment
+    fields:
+      id: UUID
+      reference: String
+      amount: Decimal
+      currency: String
+      due_date: Date
+      line_items: List<LineItem>
+      status:
+        type: String
+        enum: [pending, matched, partial, disputed]
+        default: pending
+
+  BankTransaction:
+    description: A single transaction from the bank feed
+    fields:
+      id: UUID
+      reference: String
+      amount: Decimal
+      currency: String
+      date: Date
+      counterparty: String
+
+  MatchResult:
+    description: The outcome of matching one invoice
+    fields:
+      invoice: Invoice
+      transactions: List<BankTransaction>
+      confidence: Float
+      match_type:
+        type: String
+        enum: [exact, fuzzy, partial, none]
+
+protocols:
+  queries:
+    - find_unmatched
+    - match_status
+  commands:
+    - match
+    - dispute
+  events:
+    - on_match_complete
+
+messages:
+  match:
+    description: Match a batch of invoices against bank transactions
+    input:
+      invoices: List<Invoice>
+      transactions: List<BankTransaction>
+      tolerance: Float
+    output: List<MatchResult>
+    algorithm:
+      - Index transactions by reference prefix (first 8 chars) into a HashMap
+      - For each invoice, look up candidates by reference prefix
+      - For each candidate, compare amounts within tolerance
+      - If exact match (delta < 0.01), mark as exact
+      - If within tolerance, mark as fuzzy and record confidence = 1 - (delta / amount)
+      - If multiple transactions sum to invoice amount (within tolerance), mark as partial
+      - Collect all unmatched invoices with match_type = none
+      - Sort results by confidence descending
+    constraints:
+      - O(n log n) time complexity or better
+      - Must handle multiple currencies — never compare across currencies
+      - Tolerance is relative to invoice amount, not absolute
+
+  find_unmatched:
+    description: Return all invoices that have no matching transaction
+    input:
+      invoices: List<Invoice>
+      results: List<MatchResult>
+    output: List<Invoice>
+    algorithm:
+      - Build a Set of matched invoice IDs from results where match_type != none
+      - Filter invoices where ID is not in the matched set
+
+  dispute:
+    description: Flag an invoice as disputed when no match can be found
+    input:
+      invoice: Invoice
+      reason: String
+    output: Invoice
+    algorithm:
+      - Set invoice status to disputed
+      - Record the reason and current timestamp
+      - Send notification to the billing team via Notifier
+    errors:
+      already_matched: Return error if invoice status is already matched
+      invalid_status: Return error if invoice is already disputed
+
+  match_status:
+    description: Get the current match status for an invoice
+    input:
+      invoice_id: UUID
+    output: MatchResult
+    algorithm:
+      - Look up the most recent MatchResult for this invoice_id
+      - If no result exists, return MatchResult with match_type = none
+    errors:
+      not_found: Return error if invoice_id does not exist
+
+  on_match_complete:
+    description: Event emitted after a batch match completes
+    input:
+      results: List<MatchResult>
+      batch_id: UUID
+    output: Void
+    algorithm:
+      - Count results by match_type
+      - Send summary to Notifier with batch_id
+      - Log completion to audit trail
+
+constraints:
+  - All operations must be idempotent — running match twice with same input produces same output
+  - Currency mismatches must never silently succeed
+  - Partial matches must account for all line items
+
+environment:
+  language: python
+  runtime: python-3.12
+  needs: [postgresql]
+  os: any
+
+dependencies:
+  Notifier:
+    description: Sends notifications to team members
+    messages: [send_alert, send_summary]
