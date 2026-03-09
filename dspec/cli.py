@@ -330,12 +330,123 @@ def main():
     p_export.add_argument("-o", "--output", help="Output file (default: stdout)")
     p_export.set_defaults(func=cmd_export)
 
+    # crc
+    p_crc = subparsers.add_parser("crc", help="Open CRC card designer in browser")
+    p_crc.add_argument("files", nargs="*", help="Spec files to preload")
+    p_crc.add_argument("--port", type=int, default=8089, help="Port (default: 8089)")
+    p_crc.set_defaults(func=cmd_crc)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
         sys.exit(1)
 
     args.func(args)
+
+
+def cmd_crc(args):
+    """Launch the CRC card designer in a browser."""
+    import http.server
+    import webbrowser
+    import threading
+    import json
+    import urllib.parse
+
+    ui_dir = Path(__file__).parent.parent / "ui"
+    crc_html = ui_dir / "crc.html"
+
+    if not crc_html.exists():
+        print(f"Error: CRC UI not found at {crc_html}", file=sys.stderr)
+        sys.exit(1)
+
+    # Preload specs if provided
+    preload_cards = []
+    for filepath in (args.files or []):
+        spec = load_spec(filepath)
+        card = spec_to_crc_card(spec)
+        preload_cards.append(card)
+
+    class CRCHandler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *a, **kw):
+            super().__init__(*a, directory=str(ui_dir), **kw)
+
+        def do_GET(self):
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path == '/api/preload':
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(preload_cards).encode())
+                return
+            super().do_GET()
+
+        def log_message(self, format, *a):
+            pass  # Suppress request logs
+
+    port = args.port
+    server = http.server.HTTPServer(('127.0.0.1', port), CRCHandler)
+
+    url = f"http://127.0.0.1:{port}/crc.html"
+    print(f"CRC Card Designer running at {url}")
+    if preload_cards:
+        print(f"Preloaded {len(preload_cards)} specs")
+    print("Press Ctrl+C to stop\n")
+
+    threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
+        server.server_close()
+
+
+def spec_to_crc_card(spec: dict) -> dict:
+    """Convert a dspec YAML spec into a CRC card data structure."""
+    messages = []
+    for msg_name, msg in spec.get("messages", {}).items():
+        inp = msg.get("input", {})
+        params = ", ".join(f"{k} {v}" for k, v in inp.items()) if isinstance(inp, dict) else ""
+        algo_steps = msg.get("algorithm", [])
+        messages.append({
+            "name": msg_name,
+            "params": params,
+            "returnType": msg.get("output", "Void"),
+            "algorithm": "; ".join(algo_steps) if isinstance(algo_steps, list) else "",
+        })
+
+    collaborators = []
+    for dep_name, dep in spec.get("dependencies", {}).items():
+        msgs = dep.get("messages", []) if isinstance(dep, dict) else []
+        collaborators.append({"name": dep_name, "messages": msgs})
+
+    data = []
+    for name, struct in spec.get("data", {}).items():
+        fields = []
+        if isinstance(struct, dict):
+            for fname, ftype in struct.get("fields", {}).items():
+                type_str = ftype if isinstance(ftype, str) else ftype.get("type", "?")
+                fields.append({"name": fname, "type": type_str})
+        data.append({"name": name, "fields": fields})
+
+    env = spec.get("environment", {})
+    environment = []
+    if isinstance(env, dict):
+        if env.get("language"):
+            environment.append(env["language"])
+        environment.extend(env.get("needs", []))
+
+    return {
+        "name": spec.get("object", "Unknown"),
+        "package": spec.get("package", "default"),
+        "purpose": spec.get("purpose", "").strip(),
+        "data": data,
+        "messages": messages,
+        "collaborators": collaborators,
+        "constraints": spec.get("constraints", []) or [],
+        "environment": environment,
+    }
 
 
 if __name__ == "__main__":

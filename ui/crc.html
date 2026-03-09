@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dspec — CRC Card Designer</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --card: #0f3460;
+  --card-border: #e94560;
+  --accent: #e94560;
+  --text: #eee;
+  --text-dim: #999;
+  --text-dark: #666;
+  --green: #4ecca3;
+  --yellow: #f0c040;
+  --blue: #4ea8de;
+  --orange: #e07838;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid #ffffff10;
+}
+
+header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+header h1 span { color: var(--accent); }
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid #ffffff20;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.15s;
+}
+
+.btn:hover { background: #ffffff10; }
+.btn-accent { border-color: var(--accent); color: var(--accent); }
+.btn-accent:hover { background: var(--accent); color: white; }
+.btn-green { border-color: var(--green); color: var(--green); }
+.btn-green:hover { background: var(--green); color: var(--bg); }
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid #ffffff08;
+  font-size: 13px;
+}
+
+.toolbar label { color: var(--text-dim); }
+
+.toolbar select, .toolbar input {
+  padding: 6px 10px;
+  border: 1px solid #ffffff15;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+}
+
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chip-count { background: var(--accent); color: white; }
+
+/* ── Board ── */
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 24px;
+  align-items: flex-start;
+}
+
+/* ── CRC Card ── */
+.crc-card {
+  width: 420px;
+  background: var(--card);
+  border: 2px solid #ffffff15;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.crc-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 24px #e9456030;
+}
+
+.crc-card.dragging {
+  opacity: 0.5;
+  border-color: var(--yellow);
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--accent)20, transparent);
+  border-bottom: 1px solid #ffffff10;
+  cursor: grab;
+}
+
+.card-header:active { cursor: grabbing; }
+
+.card-name {
+  font-size: 17px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+
+.card-package {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.card-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-btn:hover { background: #ffffff15; color: var(--text); }
+.card-btn.delete:hover { color: var(--accent); }
+
+/* Card Purpose */
+.card-purpose {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  border-bottom: 1px solid #ffffff08;
+  font-style: italic;
+}
+
+/* Card Body — two columns */
+.card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 120px;
+}
+
+.card-col {
+  padding: 12px 16px;
+}
+
+.card-col:first-child {
+  border-right: 1px solid #ffffff08;
+}
+
+.card-col h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.responsibility, .collaborator {
+  font-size: 12px;
+  padding: 4px 0;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.responsibility::before {
+  content: "›";
+  color: var(--green);
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.collaborator {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  transition: background 0.1s;
+}
+
+.collaborator:hover { background: #ffffff10; }
+
+.collaborator::before {
+  content: "→";
+  color: var(--blue);
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.collab-name { color: var(--blue); font-family: var(--mono); font-size: 11px; }
+.collab-msgs { color: var(--text-dim); font-size: 10px; margin-left: 4px; }
+
+/* Card Footer — data structures */
+.card-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #ffffff08;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.data-tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+  background: #ffffff10;
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+/* Card Constraints */
+.card-constraints {
+  padding: 8px 16px 12px;
+  border-top: 1px solid #ffffff08;
+}
+
+.card-constraints h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.constraint {
+  font-size: 11px;
+  color: var(--orange);
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+.constraint::before {
+  content: "!";
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+/* ── Connection Lines (SVG overlay) ── */
+.connections-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.board { position: relative; z-index: 1; }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #00000080;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid #ffffff15;
+  border-radius: 12px;
+  width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.modal h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.modal .field {
+  margin-bottom: 14px;
+}
+
+.modal label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal input, .modal textarea, .modal select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ffffff15;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--font);
+}
+
+.modal textarea {
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* ── YAML Export Modal ── */
+.yaml-output {
+  background: var(--bg);
+  border: 1px solid #ffffff15;
+  border-radius: 6px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 60vh;
+  color: var(--green);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .crc-card { width: 100%; }
+  .board { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>d</span>spec CRC</h1>
+  <div class="header-actions">
+    <button class="btn" onclick="importYAML()">Import YAML</button>
+    <button class="btn btn-green" onclick="exportAllYAML()">Export All</button>
+    <button class="btn btn-accent" onclick="openNewCard()">+ New Card</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <label>Package:</label>
+  <select id="packageFilter" onchange="filterCards()">
+    <option value="all">All packages</option>
+  </select>
+  <label>Cards:</label>
+  <span class="chip chip-count" id="cardCount">0</span>
+  <div style="flex:1"></div>
+  <label>View:</label>
+  <button class="btn" onclick="toggleConnections()" id="connToggle">Show Links</button>
+</div>
+
+<svg class="connections-layer" id="connections"></svg>
+
+<div class="board" id="board"></div>
+
+<!-- New/Edit Card Modal -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal">
+    <h2 id="modalTitle">New CRC Card</h2>
+    <div class="field">
+      <label>Object Name (PascalCase)</label>
+      <input type="text" id="f_name" placeholder="InvoiceReconciler">
+    </div>
+    <div class="field">
+      <label>Package</label>
+      <input type="text" id="f_package" placeholder="billing">
+    </div>
+    <div class="field">
+      <label>Purpose</label>
+      <textarea id="f_purpose" rows="2" placeholder="What does this object do and why does it exist?"></textarea>
+    </div>
+    <div class="field">
+      <label>Data Structures (one per line: Name: field1 Type, field2 Type)</label>
+      <textarea id="f_data" rows="4" placeholder="Invoice: id UUID, amount Decimal, status String&#10;MatchResult: invoice Invoice, confidence Float"></textarea>
+    </div>
+    <div class="field">
+      <label>Responsibilities — Messages (one per line: name(param Type) -> ReturnType | algorithm step; step; step)</label>
+      <textarea id="f_responsibilities" rows="6" placeholder="match(invoices List&lt;Invoice&gt;, tolerance Float) -> List&lt;MatchResult&gt; | Index by prefix; Compare amounts; Sort by confidence&#10;find_unmatched(invoices List&lt;Invoice&gt;) -> List&lt;Invoice&gt; | Filter unmatched from results"></textarea>
+    </div>
+    <div class="field">
+      <label>Collaborators — Dependencies (one per line: ObjectName: msg1, msg2)</label>
+      <textarea id="f_collaborators" rows="3" placeholder="Notifier: send_alert, send_summary&#10;AuditLog: record_event"></textarea>
+    </div>
+    <div class="field">
+      <label>Constraints (one per line)</label>
+      <textarea id="f_constraints" rows="3" placeholder="O(n log n) time complexity&#10;Never compare across currencies"></textarea>
+    </div>
+    <div class="field">
+      <label>Environment</label>
+      <input type="text" id="f_env" placeholder="python, postgresql, redis">
+    </div>
+    <input type="hidden" id="f_editIndex" value="-1">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- YAML Export Modal -->
+<div class="modal-overlay" id="yamlModal">
+  <div class="modal" style="width:700px">
+    <h2>Exported YAML Specs</h2>
+    <pre class="yaml-output" id="yamlOutput"></pre>
+    <div class="modal-actions">
+      <button class="btn" onclick="copyYAML()">Copy to Clipboard</button>
+      <button class="btn" onclick="closeYAMLModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import YAML Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="width:700px">
+    <h2>Import YAML Spec</h2>
+    <div class="field">
+      <label>Paste a .spec.yml file</label>
+      <textarea id="importInput" rows="20" placeholder="object: InvoiceReconciler&#10;package: billing&#10;purpose: ..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="doImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let cards = [];
+let showConnections = false;
+
+// ── Persistence ──
+function saveState() {
+  localStorage.setItem('dspec_cards', JSON.stringify(cards));
+}
+
+function loadState() {
+  const saved = localStorage.getItem('dspec_cards');
+  if (saved) {
+    try { cards = JSON.parse(saved); } catch(e) { cards = []; }
+  }
+}
+
+// ── Card Data Model ──
+function makeCard(opts = {}) {
+  return {
+    name: opts.name || 'NewObject',
+    package: opts.package || 'default',
+    purpose: opts.purpose || '',
+    data: opts.data || [],       // [{name, fields: [{name, type}]}]
+    messages: opts.messages || [],  // [{name, params, returnType, algorithm}]
+    collaborators: opts.collaborators || [],  // [{name, messages}]
+    constraints: opts.constraints || [],
+    environment: opts.environment || [],
+  };
+}
+
+// ── Render ──
+function render() {
+  const board = document.getElementById('board');
+  const filter = document.getElementById('packageFilter').value;
+
+  const filtered = filter === 'all' ? cards : cards.filter(c => c.package === filter);
+
+  board.innerHTML = filtered.map((card, i) => {
+    const idx = cards.indexOf(card);
+    return renderCard(card, idx);
+  }).join('');
+
+  document.getElementById('cardCount').textContent = filtered.length;
+  updatePackageFilter();
+  if (showConnections) drawConnections();
+  saveState();
+}
+
+function renderCard(card, idx) {
+  const responsibilities = card.messages.map(m => {
+    const params = m.params || '';
+    const ret = m.returnType || 'Void';
+    const algoPreview = m.algorithm ? m.algorithm.split(';')[0].trim() : '';
+    return `<div class="responsibility"><span><strong>${m.name}</strong>(${params}) → ${ret}${algoPreview ? '<br><span style="color:var(--text-dim);font-size:11px">' + algoPreview + '…</span>' : ''}</span></div>`;
+  }).join('');
+
+  const collabs = card.collaborators.map(c =>
+    `<div class="collaborator" onclick="highlightCard('${c.name}')"><span><span class="collab-name">${c.name}</span><span class="collab-msgs">${c.messages.join(', ')}</span></span></div>`
+  ).join('');
+
+  const dataTags = card.data.map(d =>
+    `<span class="data-tag">${d.name}</span>`
+  ).join('');
+
+  const constraintItems = card.constraints.map(c =>
+    `<div class="constraint">${c}</div>`
+  ).join('');
+
+  return `
+    <div class="crc-card" id="card-${idx}" data-name="${card.name}" data-package="${card.package}">
+      <div class="card-header" draggable="true" ondragstart="onDragStart(event, ${idx})">
+        <div>
+          <div class="card-package">${card.package}</div>
+          <div class="card-name">${card.name}</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-btn" onclick="editCard(${idx})" title="Edit">✎</button>
+          <button class="card-btn" onclick="exportOneYAML(${idx})" title="Export YAML">⬡</button>
+          <button class="card-btn" onclick="duplicateCard(${idx})" title="Duplicate">⧉</button>
+          <button class="card-btn delete" onclick="deleteCard(${idx})" title="Delete">✕</button>
+        </div>
+      </div>
+      ${card.purpose ? `<div class="card-purpose">${card.purpose}</div>` : ''}
+      <div class="card-body">
+        <div class="card-col">
+          <h3>Responsibilities</h3>
+          ${responsibilities || '<span style="color:var(--text-dark);font-size:12px">No messages defined</span>'}
+        </div>
+        <div class="card-col">
+          <h3>Collaborators</h3>
+          ${collabs || '<span style="color:var(--text-dark);font-size:12px">None</span>'}
+        </div>
+      </div>
+      ${dataTags ? `<div class="card-footer">${dataTags}</div>` : ''}
+      ${constraintItems ? `<div class="card-constraints"><h3>Constraints</h3>${constraintItems}</div>` : ''}
+    </div>
+  `;
+}
+
+function updatePackageFilter() {
+  const sel = document.getElementById('packageFilter');
+  const current = sel.value;
+  const packages = [...new Set(cards.map(c => c.package))].sort();
+  sel.innerHTML = '<option value="all">All packages</option>' +
+    packages.map(p => `<option value="${p}" ${p === current ? 'selected' : ''}>${p}</option>`).join('');
+}
+
+// ── Modal ──
+function openNewCard() {
+  document.getElementById('modalTitle').textContent = 'New CRC Card';
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_package').value = '';
+  document.getElementById('f_purpose').value = '';
+  document.getElementById('f_data').value = '';
+  document.getElementById('f_responsibilities').value = '';
+  document.getElementById('f_collaborators').value = '';
+  document.getElementById('f_constraints').value = '';
+  document.getElementById('f_env').value = '';
+  document.getElementById('f_editIndex').value = '-1';
+  document.getElementById('cardModal').classList.add('open');
+  document.getElementById('f_name').focus();
+}
+
+function editCard(idx) {
+  const card = cards[idx];
+  document.getElementById('modalTitle').textContent = `Edit: ${card.name}`;
+  document.getElementById('f_name').value = card.name;
+  document.getElementById('f_package').value = card.package;
+  document.getElementById('f_purpose').value = card.purpose;
+
+  document.getElementById('f_data').value = card.data.map(d =>
+    `${d.name}: ${d.fields.map(f => `${f.name} ${f.type}`).join(', ')}`
+  ).join('\n');
+
+  document.getElementById('f_responsibilities').value = card.messages.map(m =>
+    `${m.name}(${m.params || ''}) -> ${m.returnType || 'Void'}${m.algorithm ? ' | ' + m.algorithm : ''}`
+  ).join('\n');
+
+  document.getElementById('f_collaborators').value = card.collaborators.map(c =>
+    `${c.name}: ${c.messages.join(', ')}`
+  ).join('\n');
+
+  document.getElementById('f_constraints').value = card.constraints.join('\n');
+  document.getElementById('f_env').value = card.environment.join(', ');
+  document.getElementById('f_editIndex').value = idx;
+  document.getElementById('cardModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('cardModal').classList.remove('open');
+}
+
+function saveCard() {
+  const name = document.getElementById('f_name').value.trim();
+  if (!name) { alert('Object name is required'); return; }
+
+  const card = makeCard({
+    name,
+    package: document.getElementById('f_package').value.trim() || 'default',
+    purpose: document.getElementById('f_purpose').value.trim(),
+    data: parseData(document.getElementById('f_data').value),
+    messages: parseMessages(document.getElementById('f_responsibilities').value),
+    collaborators: parseCollaborators(document.getElementById('f_collaborators').value),
+    constraints: parseLines(document.getElementById('f_constraints').value),
+    environment: document.getElementById('f_env').value.split(',').map(s => s.trim()).filter(Boolean),
+  });
+
+  const editIdx = parseInt(document.getElementById('f_editIndex').value);
+  if (editIdx >= 0) {
+    cards[editIdx] = card;
+  } else {
+    cards.push(card);
+  }
+
+  closeModal();
+  render();
+}
+
+// ── Parsers ──
+function parseData(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const [name, ...rest] = line.split(':');
+    const fieldsStr = rest.join(':').trim();
+    const fields = fieldsStr.split(',').filter(f => f.trim()).map(f => {
+      const parts = f.trim().split(/\s+/);
+      const fname = parts[0];
+      const ftype = parts.slice(1).join(' ') || 'String';
+      return { name: fname, type: ftype };
+    });
+    return { name: name.trim(), fields };
+  });
+}
+
+function parseMessages(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const [signature, ...algoParts] = line.split('|');
+    const algorithm = algoParts.join('|').trim();
+
+    const sigMatch = signature.match(/^(\w+)\(([^)]*)\)\s*->\s*(.+)$/);
+    if (sigMatch) {
+      return {
+        name: sigMatch[1],
+        params: sigMatch[2].trim(),
+        returnType: sigMatch[3].trim(),
+        algorithm,
+      };
+    }
+    // Fallback: just a name
+    return { name: signature.trim(), params: '', returnType: 'Void', algorithm };
+  });
+}
+
+function parseCollaborators(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const [name, ...rest] = line.split(':');
+    const msgs = rest.join(':').split(',').map(s => s.trim()).filter(Boolean);
+    return { name: name.trim(), messages: msgs };
+  });
+}
+
+function parseLines(text) {
+  return text.split('\n').map(l => l.trim()).filter(Boolean);
+}
+
+// ── Card Actions ──
+function deleteCard(idx) {
+  if (confirm(`Delete ${cards[idx].name}?`)) {
+    cards.splice(idx, 1);
+    render();
+  }
+}
+
+function duplicateCard(idx) {
+  const copy = JSON.parse(JSON.stringify(cards[idx]));
+  copy.name = copy.name + 'Copy';
+  cards.push(copy);
+  render();
+}
+
+function highlightCard(name) {
+  const el = document.querySelector(`[data-name="${name}"]`);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.borderColor = 'var(--yellow)';
+    el.style.boxShadow = '0 0 30px #f0c04050';
+    setTimeout(() => {
+      el.style.borderColor = '';
+      el.style.boxShadow = '';
+    }, 1500);
+  }
+}
+
+// ── YAML Export ──
+function cardToYAML(card) {
+  let y = '';
+  y += `object: ${card.name}\n`;
+  y += `package: ${card.package}\n\n`;
+  y += `purpose: >\n  ${card.purpose || 'TODO: describe purpose'}\n\n`;
+
+  // Data
+  y += `data:\n`;
+  if (card.data.length === 0) {
+    y += `  # TODO: define data structures\n`;
+    y += `  Item:\n    fields:\n      id: UUID\n`;
+  } else {
+    for (const d of card.data) {
+      y += `  ${d.name}:\n    fields:\n`;
+      for (const f of d.fields) {
+        y += `      ${f.name}: ${f.type}\n`;
+      }
+    }
+  }
+  y += '\n';
+
+  // Protocols
+  const msgNames = card.messages.map(m => m.name);
+  if (msgNames.length > 0) {
+    y += `protocols:\n`;
+    y += `  messages: [${msgNames.join(', ')}]\n\n`;
+  }
+
+  // Messages
+  y += `messages:\n`;
+  if (card.messages.length === 0) {
+    y += `  # TODO: define messages\n`;
+    y += `  example:\n    input:\n      id: UUID\n    output: Void\n    algorithm:\n      - TODO\n`;
+  } else {
+    for (const m of card.messages) {
+      y += `  ${m.name}:\n`;
+      // Parse params
+      if (m.params) {
+        y += `    input:\n`;
+        const params = m.params.split(',').map(p => p.trim()).filter(Boolean);
+        for (const p of params) {
+          const parts = p.split(/\s+/);
+          const pname = parts[0];
+          const ptype = parts.slice(1).join(' ') || 'String';
+          y += `      ${pname}: ${ptype}\n`;
+        }
+      } else {
+        y += `    input: {}\n`;
+      }
+      y += `    output: ${m.returnType || 'Void'}\n`;
+      y += `    algorithm:\n`;
+      if (m.algorithm) {
+        const steps = m.algorithm.split(';').map(s => s.trim()).filter(Boolean);
+        for (const step of steps) {
+          y += `      - ${step}\n`;
+        }
+      } else {
+        y += `      - TODO\n`;
+      }
+    }
+  }
+  y += '\n';
+
+  // Constraints
+  if (card.constraints.length > 0) {
+    y += `constraints:\n`;
+    for (const c of card.constraints) {
+      y += `  - ${c}\n`;
+    }
+    y += '\n';
+  }
+
+  // Environment
+  if (card.environment.length > 0) {
+    y += `environment:\n`;
+    y += `  language: ${card.environment[0]}\n`;
+    if (card.environment.length > 1) {
+      y += `  needs: [${card.environment.slice(1).join(', ')}]\n`;
+    }
+    y += `  os: any\n\n`;
+  }
+
+  // Dependencies
+  if (card.collaborators.length > 0) {
+    y += `dependencies:\n`;
+    for (const c of card.collaborators) {
+      y += `  ${c.name}:\n`;
+      y += `    messages: [${c.messages.join(', ')}]\n`;
+    }
+  }
+
+  return y;
+}
+
+function exportAllYAML() {
+  if (cards.length === 0) { alert('No cards to export'); return; }
+  const yaml = cards.map(c => cardToYAML(c)).join('\n---\n\n');
+  document.getElementById('yamlOutput').textContent = yaml;
+  document.getElementById('yamlModal').classList.add('open');
+}
+
+function exportOneYAML(idx) {
+  const yaml = cardToYAML(cards[idx]);
+  document.getElementById('yamlOutput').textContent = yaml;
+  document.getElementById('yamlModal').classList.add('open');
+}
+
+function copyYAML() {
+  const text = document.getElementById('yamlOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied to clipboard!');
+  });
+}
+
+function closeYAMLModal() {
+  document.getElementById('yamlModal').classList.remove('open');
+}
+
+// ── YAML Import ──
+function importYAML() {
+  document.getElementById('importInput').value = '';
+  document.getElementById('importModal').classList.add('open');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+}
+
+function doImport() {
+  const text = document.getElementById('importInput').value;
+  try {
+    const card = parseYAMLSpec(text);
+    cards.push(card);
+    closeImportModal();
+    render();
+  } catch (e) {
+    alert('Parse error: ' + e.message);
+  }
+}
+
+function parseYAMLSpec(text) {
+  // Minimal YAML parser for dspec format
+  const lines = text.split('\n');
+  const spec = {};
+  let currentKey = null;
+  let currentSubKey = null;
+  let currentSubSubKey = null;
+  let indent = 0;
+
+  // Simple line-by-line parse
+  for (const line of lines) {
+    const trimmed = line.trimEnd();
+    if (!trimmed || trimmed.startsWith('#') || trimmed === '---') continue;
+
+    const lineIndent = line.search(/\S/);
+
+    // Top-level key
+    const topMatch = trimmed.match(/^(\w+):\s*(.*)$/);
+    if (lineIndent === 0 && topMatch) {
+      currentKey = topMatch[1];
+      const val = topMatch[2].trim();
+      if (val && val !== '>' && val !== '|' && !val.startsWith('{')) {
+        spec[currentKey] = val;
+      } else if (!val || val === '>' || val === '|') {
+        spec[currentKey] = {};
+      }
+      currentSubKey = null;
+      currentSubSubKey = null;
+      continue;
+    }
+  }
+
+  // Fallback: use regex-based extraction
+  const getName = (key) => {
+    const m = text.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+    return m ? m[1].trim() : '';
+  };
+
+  const name = getName('object') || 'ImportedObject';
+  const pkg = getName('package') || 'default';
+
+  // Purpose
+  let purpose = '';
+  const purposeMatch = text.match(/^purpose:\s*>?\s*\n((?:\s+.+\n?)*)/m);
+  if (purposeMatch) {
+    purpose = purposeMatch[1].replace(/\n\s*/g, ' ').trim();
+  } else {
+    purpose = getName('purpose');
+  }
+
+  // Data structures
+  const data = [];
+  const dataMatch = text.match(/^data:\n((?:\s+.+\n?)*)/m);
+  if (dataMatch) {
+    const dataBlock = dataMatch[1];
+    const structRegex = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
+    let sm;
+    while ((sm = structRegex.exec(dataBlock)) !== null) {
+      const structName = sm[1];
+      if (structName === 'description') continue;
+      const fields = [];
+      const fieldRegex = /^\s{6}(\w+):\s*(.+)$/gm;
+      let fm;
+      const body = sm[2];
+      while ((fm = fieldRegex.exec(body)) !== null) {
+        if (fm[1] === 'type' || fm[1] === 'enum' || fm[1] === 'default' || fm[1] === 'description') continue;
+        fields.push({ name: fm[1], type: fm[2].trim() });
+      }
+      if (fields.length > 0) {
+        data.push({ name: structName, fields });
+      }
+    }
+  }
+
+  // Messages
+  const messages = [];
+  const msgsMatch = text.match(/^messages:\n((?:\s+.+\n?)*)/m);
+  if (msgsMatch) {
+    const msgBlock = msgsMatch[1];
+    const msgRegex = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
+    let mm;
+    while ((mm = msgRegex.exec(msgBlock)) !== null) {
+      const msgName = mm[1];
+      const body = mm[2];
+
+      // Parse input params
+      let params = '';
+      const inputMatch = body.match(/input:\n((?:\s{6}\w+:.+\n?)*)/);
+      if (inputMatch) {
+        const paramLines = inputMatch[1].match(/^\s{6}(\w+):\s*(.+)$/gm) || [];
+        params = paramLines.map(l => {
+          const pm = l.match(/^\s+(\w+):\s*(.+)$/);
+          return pm ? `${pm[1]} ${pm[2].trim()}` : '';
+        }).filter(Boolean).join(', ');
+      }
+
+      // Parse output
+      const outMatch = body.match(/output:\s*(.+)/);
+      const returnType = outMatch ? outMatch[1].trim() : 'Void';
+
+      // Parse algorithm
+      const algoSteps = [];
+      const algoMatch = body.match(/algorithm:\n((?:\s{6}-.+\n?)*)/);
+      if (algoMatch) {
+        const stepRegex = /^\s{6}-\s*(.+)$/gm;
+        let sm;
+        while ((sm = stepRegex.exec(algoMatch[1])) !== null) {
+          algoSteps.push(sm[1].trim());
+        }
+      }
+
+      messages.push({
+        name: msgName,
+        params,
+        returnType,
+        algorithm: algoSteps.join('; '),
+      });
+    }
+  }
+
+  // Dependencies
+  const collaborators = [];
+  const depsMatch = text.match(/^dependencies:\n((?:\s+.+\n?)*)/m);
+  if (depsMatch) {
+    const depRegex = /^  (\w+):\n((?:\s{4}.+\n?)*)/gm;
+    let dm;
+    while ((dm = depRegex.exec(depsMatch[1])) !== null) {
+      const depName = dm[1];
+      const msgsMatch2 = dm[2].match(/messages:\s*\[([^\]]+)\]/);
+      const msgs = msgsMatch2 ? msgsMatch2[1].split(',').map(s => s.trim()) : [];
+      collaborators.push({ name: depName, messages: msgs });
+    }
+  }
+
+  // Constraints
+  const constraints = [];
+  const conMatch = text.match(/^constraints:\n((?:\s+-\s+.+\n?)*)/m);
+  if (conMatch) {
+    const cRegex = /^\s+-\s+(.+)$/gm;
+    let cm;
+    while ((cm = cRegex.exec(conMatch[1])) !== null) {
+      constraints.push(cm[1].trim());
+    }
+  }
+
+  // Environment
+  const environment = [];
+  const langMatch = text.match(/language:\s*(.+)/);
+  if (langMatch) environment.push(langMatch[1].trim());
+  const needsMatch = text.match(/needs:\s*\[([^\]]+)\]/);
+  if (needsMatch) {
+    environment.push(...needsMatch[1].split(',').map(s => s.trim()));
+  }
+
+  return makeCard({ name, package: pkg, purpose, data, messages, collaborators, constraints, environment });
+}
+
+// ── Connections ──
+function toggleConnections() {
+  showConnections = !showConnections;
+  document.getElementById('connToggle').textContent = showConnections ? 'Hide Links' : 'Show Links';
+  if (showConnections) drawConnections();
+  else document.getElementById('connections').innerHTML = '';
+}
+
+function drawConnections() {
+  const svg = document.getElementById('connections');
+  svg.innerHTML = '';
+  const cardNames = new Map();
+
+  document.querySelectorAll('.crc-card').forEach(el => {
+    const name = el.dataset.name;
+    const rect = el.getBoundingClientRect();
+    cardNames.set(name, {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
+  });
+
+  for (const card of cards) {
+    const from = cardNames.get(card.name);
+    if (!from) continue;
+    for (const collab of card.collaborators) {
+      const to = cardNames.get(collab.name);
+      if (!to) continue;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', from.x);
+      line.setAttribute('y1', from.y);
+      line.setAttribute('x2', to.x);
+      line.setAttribute('y2', to.y);
+      line.setAttribute('stroke', '#e9456050');
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-dasharray', '6 4');
+      svg.appendChild(line);
+    }
+  }
+}
+
+// ── Drag (reorder) ──
+let dragIdx = -1;
+function onDragStart(e, idx) {
+  dragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+// ── Init ──
+loadState();
+
+// Fetch preloaded specs from CLI
+fetch('/api/preload')
+  .then(r => r.json())
+  .then(preloaded => {
+    if (preloaded && preloaded.length > 0) {
+      // Merge preloaded cards (avoid duplicates by name)
+      const existingNames = new Set(cards.map(c => c.name));
+      for (const card of preloaded) {
+        if (!existingNames.has(card.name)) {
+          cards.push(card);
+        }
+      }
+    }
+    render();
+  })
+  .catch(() => render());  // Offline/static file mode — just render what's in localStorage
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeYAMLModal();
+    closeImportModal();
+  }
+});
+
+// Redraw connections on scroll/resize
+window.addEventListener('scroll', () => { if (showConnections) drawConnections(); });
+window.addEventListener('resize', () => { if (showConnections) drawConnections(); });
+</script>
+</body>
+</html>
